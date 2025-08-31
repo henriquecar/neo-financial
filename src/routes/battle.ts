@@ -7,9 +7,6 @@ import { validateBody } from '../middleware/validation';
 import { battleRequestSchema } from '../schemas/battleSchemas';
 
 const router = express.Router();
-const container = ServiceContainer.getInstance();
-const characterService = container.getCharacterService();
-const battleService = container.getBattleService();
 
 /**
  * @swagger
@@ -52,6 +49,11 @@ const battleService = container.getBattleService();
  */
 router.post('/', validateBody(battleRequestSchema), asyncHandler(async (req: express.Request, res: express.Response) => {
   const { character1Id, character2Id }: BattleRequest = req.body;
+
+  // Get services from container
+  const container = ServiceContainer.getInstance();
+  const characterService = container.getCharacterService();
+  const battleService = container.getBattleService();
 
   // Get characters
   const character1 = await characterService.getCharacterById(character1Id);

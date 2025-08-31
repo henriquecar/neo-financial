@@ -52,8 +52,3 @@ export function errorHandler(error: Error, req: Request, res: Response, next: Ne
   res.status(statusCode).json(errorResponse);
 }
 
-export function asyncHandler(fn: Function) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}

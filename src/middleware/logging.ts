@@ -50,7 +50,7 @@ export function enhancedLoggingMiddleware(req: Request, res: Response, next: Nex
     url,
     userAgent: headers['user-agent'],
     contentType: headers['content-type'],
-    bodySize: JSON.stringify(body).length,
+    bodySize: (JSON.stringify(body) || '').length,
     hasQuery: Object.keys(query).length > 0,
     hasParams: Object.keys(params).length > 0,
     ip: req.ip || req.socket.remoteAddress

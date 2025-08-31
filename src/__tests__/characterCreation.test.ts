@@ -5,11 +5,13 @@ import jobRoutes from '../routes/jobs';
 import { ServiceContainer } from '../container/ServiceContainer';
 import { TestCharacter } from '../types/test';
 import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
+import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
 app.use(express.json());
 app.use('/api/characters', characterRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use(errorHandler);
 
 describe('Character Creation API', () => {
   beforeEach(async () => {

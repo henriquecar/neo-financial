@@ -28,10 +28,26 @@ describe('Battle System', () => {
     const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
     characterRepository.clear();
 
-    // Create test characters
-    warrior = await characterService.createCharacter('TestWarrior', 'Warrior');
-    mage = await characterService.createCharacter('TestMage', 'Mage');
-    thief = await characterService.createCharacter('TestThief', 'Thief');
+    // Create test characters via API calls to ensure proper integration
+    const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 3) || 'tst';
+    
+    const warriorResponse = await request(app)
+      .post('/api/characters')
+      .send({ name: `War_${testId}`, job: 'Warrior' })
+      .expect(201);
+    warrior = warriorResponse.body;
+    
+    const mageResponse = await request(app)
+      .post('/api/characters')
+      .send({ name: `Mag_${testId}`, job: 'Mage' })
+      .expect(201);
+    mage = mageResponse.body;
+    
+    const thiefResponse = await request(app)
+      .post('/api/characters')
+      .send({ name: `Thi_${testId}`, job: 'Thief' })
+      .expect(201);
+    thief = thiefResponse.body;
   });
 
   describe('BattleService', () => {
@@ -74,9 +90,20 @@ describe('Battle System', () => {
     });
 
     it('should handle multiple rounds if characters are balanced', async () => {
-      // Create two identical warriors for a potentially longer battle
-      const warrior1 = await characterService.createCharacter('Warrior1', 'Warrior');
-      const warrior2 = await characterService.createCharacter('Warrior2', 'Warrior');
+      // Create two identical warriors for a potentially longer battle via API calls  
+      const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 2).padEnd(2, 'x');
+      
+      const warrior1Response = await request(app)
+        .post('/api/characters')
+        .send({ name: `WarA${testId}`, job: 'Warrior' })
+        .expect(201);
+      const warrior1 = warrior1Response.body;
+      
+      const warrior2Response = await request(app)
+        .post('/api/characters')
+        .send({ name: `WarB${testId}`, job: 'Warrior' })
+        .expect(201);
+      const warrior2 = warrior2Response.body;
 
       const result = battleService.battle(warrior1, warrior2);
 
@@ -120,9 +147,9 @@ describe('Battle System', () => {
       const response = await request(app)
         .post('/api/battle')
         .send({ character1Id: warrior.id })
-        .expect(409);
+        .expect(400);
 
-      expect(response.body.error.message).toBe('Both character1Id and character2Id are required');
+      expect(response.body.error.message).toBe('Validation failed');
     });
 
     it('should return 400 if characters are the same', async () => {
@@ -132,9 +159,9 @@ describe('Battle System', () => {
           character1Id: warrior.id, 
           character2Id: warrior.id 
         })
-        .expect(409);
+        .expect(400);
 
-      expect(response.body.error.message).toBe('A character cannot battle against itself');
+      expect(response.body.error.message).toBe('Validation failed');
     });
 
     it('should return 400 if character is not found', async () => {
@@ -149,9 +176,9 @@ describe('Battle System', () => {
       expect(response.body.error.message).toMatch(/Character with id .+ not found/);
     });
 
-    it('should return 400 if character is dead', async () => {
+    it('should return 409 if character is dead', async () => {
       // Kill the warrior
-      characterService.updateCharacterStatus(warrior.id, 'Dead');
+      await characterService.updateCharacterStatus(warrior.id, 'Dead');
 
       const response = await request(app)
         .post('/api/battle')
@@ -176,7 +203,7 @@ describe('Battle System', () => {
         .expect(200);
 
       // Check that loser is marked as Dead in the service
-      const loserCharacter = characterService.getCharacterById(response.body.loser.character.id);
+      const loserCharacter = await characterService.getCharacterById(response.body.loser.character.id);
       expect(loserCharacter?.status).toBe('Dead');
     });
 
@@ -187,8 +214,8 @@ describe('Battle System', () => {
       };
 
       // Get initial health values
-      const initialWarrior = characterService.getCharacterById(warrior.id);
-      const initialMage = characterService.getCharacterById(mage.id);
+      const initialWarrior = await characterService.getCharacterById(warrior.id);
+      const initialMage = await characterService.getCharacterById(mage.id);
 
       const response = await request(app)
         .post('/api/battle')
@@ -196,8 +223,8 @@ describe('Battle System', () => {
         .expect(200);
 
       // Get updated characters from service
-      const updatedWarrior = characterService.getCharacterById(warrior.id);
-      const updatedMage = characterService.getCharacterById(mage.id);
+      const updatedWarrior = await characterService.getCharacterById(warrior.id);
+      const updatedMage = await characterService.getCharacterById(mage.id);
 
       // Check that winner's health is updated
       const winnerId = response.body.winner.character.id;
@@ -215,7 +242,7 @@ describe('Battle System', () => {
 
       // Check that loser's health is 0
       const loserId = response.body.loser.character.id;
-      const updatedLoser = characterService.getCharacterById(loserId);
+      const updatedLoser = await characterService.getCharacterById(loserId);
       expect(updatedLoser?.currentHealthPoints).toBe(0);
     });
 

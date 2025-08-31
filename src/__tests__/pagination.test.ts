@@ -4,10 +4,12 @@ import characterRoutes from '../routes/characters';
 import { ServiceContainer } from '../container/ServiceContainer';
 import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 import { parsePaginationParams } from '../utils/pagination';
+import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
 app.use(express.json());
 app.use('/api/characters', characterRoutes);
+app.use(errorHandler);
 
 describe('Pagination', () => {
   let characterService: any;
@@ -87,10 +89,25 @@ describe('Pagination', () => {
 
   describe('GET /api/characters with pagination', () => {
     beforeEach(async () => {
-      // Create 25 test characters for pagination testing
-      for (let i = 1; i <= 25; i++) {
-        const job = i % 3 === 0 ? 'Mage' : i % 2 === 0 ? 'Thief' : 'Warrior';
-        await characterService.createCharacter(`Character_${i.toString().padStart(2, '0')}`, job as any);
+      // Create 25 test characters for pagination testing via API calls
+      // Using names that only contain letters and underscores (no numbers)
+      // Keep names under 15 characters to pass validation
+      // Add unique identifier to avoid name collisions across tests
+      const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 3) || 'tst';
+      const names = [
+        `A_${testId}`, `B_${testId}`, `C_${testId}`, `D_${testId}`, `E_${testId}`, `F_${testId}`, `G_${testId}`, `H_${testId}`, `I_${testId}`, `J_${testId}`,
+        `K_${testId}`, `L_${testId}`, `M_${testId}`, `N_${testId}`, `O_${testId}`, `P_${testId}`, `Q_${testId}`, `R_${testId}`, `S_${testId}`, `T_${testId}`,
+        `U_${testId}`, `V_${testId}`, `W_${testId}`, `X_${testId}`, `Y_${testId}`
+      ];
+      
+      for (let i = 0; i < 25; i++) {
+        const job = i % 3 === 0 ? 'Warrior' : i % 3 === 1 ? 'Thief' : 'Mage';
+        const characterName = names[i];
+        
+        await request(app)
+          .post('/api/characters')
+          .send({ name: characterName, job })
+          .expect(201);
       }
     });
 

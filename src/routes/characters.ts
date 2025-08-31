@@ -8,8 +8,6 @@ import { validateBody, validateQuery, validateParams } from '../middleware/valid
 import { createCharacterSchema, paginationSchema, characterIdParamsSchema } from '../schemas/characterSchemas';
 
 const router = express.Router();
-const container = ServiceContainer.getInstance();
-const characterService = container.getCharacterService();
 
 /**
  * @swagger
@@ -54,14 +52,13 @@ const characterService = container.getCharacterService();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', validateQuery(paginationSchema), asyncHandler(async (req, res) => {
-  // Convert validated query to PaginationQuery format
-  const { page, limit } = req.query as any;
-  const paginationQuery = {
-    page,
-    limit,
-    offset: (page - 1) * limit
-  };
+router.get('/', asyncHandler(async (req, res) => {
+  // Parse pagination parameters from query string
+  const { parsePaginationParams } = await import('../utils/pagination');
+  const paginationQuery = parsePaginationParams(req.query);
+  
+  const container = ServiceContainer.getInstance();
+  const characterService = container.getCharacterService();
   const result = await characterService.getCharactersPaginated(paginationQuery);
   res.json(result);
 }));
@@ -102,6 +99,8 @@ router.get('/', validateQuery(paginationSchema), asyncHandler(async (req, res) =
  */
 router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const container = ServiceContainer.getInstance();
+  const characterService = container.getCharacterService();
   const character = await characterService.getCharacterById(id);
   
   if (!character) {
@@ -164,6 +163,8 @@ router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (
  */
 router.post('/', validateBody(createCharacterSchema), asyncHandler(async (req, res) => {
   const { name, job } = req.body;
+  const container = ServiceContainer.getInstance();
+  const characterService = container.getCharacterService();
   const character = await characterService.createCharacter(name, job as JobType);
   res.status(201).json(character);
 }));

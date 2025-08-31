@@ -11,7 +11,7 @@ export function validateBody(schema: ObjectSchema) {
 
     if (error) {
       const details = error.details.map(detail => detail.message);
-      throw new ValidationError('Validation failed', details);
+      return next(new ValidationError('Validation failed', details));
     }
 
     // Replace req.body with validated and sanitized data
@@ -30,7 +30,7 @@ export function validateQuery(schema: ObjectSchema) {
 
     if (error) {
       const details = error.details.map(detail => detail.message);
-      throw new ValidationError('Validation failed', details);
+      return next(new ValidationError('Validation failed', details));
     }
 
     // Replace req.query with validated and sanitized data
@@ -48,7 +48,7 @@ export function validateParams(schema: ObjectSchema) {
 
     if (error) {
       const details = error.details.map(detail => detail.message);
-      throw new ValidationError('Validation failed', details);
+      return next(new ValidationError('Validation failed', details));
     }
 
     // Replace req.params with validated data

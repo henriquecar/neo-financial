@@ -2,17 +2,15 @@ import Joi from 'joi';
 
 export const battleRequestSchema = Joi.object({
   character1Id: Joi.string()
-    .uuid()
     .required()
     .messages({
-      'string.guid': 'Character1Id must be a valid UUID',
+      'string.empty': 'Character1Id cannot be empty',
       'any.required': 'Character1Id is required'
     }),
   character2Id: Joi.string()
-    .uuid()
     .required()
     .messages({
-      'string.guid': 'Character2Id must be a valid UUID',
+      'string.empty': 'Character2Id cannot be empty',
       'any.required': 'Character2Id is required'
     })
 }).custom((value, helpers) => {

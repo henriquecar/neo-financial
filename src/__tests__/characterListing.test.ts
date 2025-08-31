@@ -4,10 +4,12 @@ import characterRoutes from '../routes/characters';
 import { ServiceContainer } from '../container/ServiceContainer';
 import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 import { TestCharacter, TestCharacterListItem } from '../types/test';
+import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
 app.use(express.json());
 app.use('/api/characters', characterRoutes);
+app.use(errorHandler);
 
 describe('Character Listing API', () => {
   let characterService: any;
@@ -34,10 +36,21 @@ describe('Character Listing API', () => {
     });
 
     it('should return all characters with name, job, and status for list view', async () => {
-      // Create multiple characters with different jobs
-      const warrior = await characterService.createCharacter('Chamness', 'Warrior');
-      const mage = await characterService.createCharacter('Aetherius', 'Mage');
-      const thief = await characterService.createCharacter('Mera', 'Thief');
+      // Create multiple characters with different jobs via API
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'Chamness', job: 'Warrior' })
+        .expect(201);
+      
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'Aetherius', job: 'Mage' })
+        .expect(201);
+      
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'Mera', job: 'Thief' })
+        .expect(201);
 
       const response = await request(app)
         .get('/api/characters')
@@ -84,9 +97,13 @@ describe('Character Listing API', () => {
         { name: 'Thatetch', job: 'Warrior' as const }
       ];
 
-      const createdCharacters = await Promise.all(characters.map(char => 
-        characterService.createCharacter(char.name, char.job)
-      ));
+      // Create characters via API
+      for (const char of characters) {
+        await request(app)
+          .post('/api/characters')
+          .send({ name: char.name, job: char.job })
+          .expect(201);
+      }
 
       const response = await request(app)
         .get('/api/characters')
@@ -111,7 +128,13 @@ describe('Character Listing API', () => {
 
   describe('GET /api/characters/:id', () => {
     it('should return character details by ID with battleModifiers', async () => {
-      const character = await characterService.createCharacter('TestHero', 'Warrior');
+      // Create character via API
+      const createResponse = await request(app)
+        .post('/api/characters')
+        .send({ name: 'TestHero', job: 'Warrior' })
+        .expect(201);
+      
+      const character = createResponse.body;
 
       const response = await request(app)
         .get(`/api/characters/${character.id}`)
@@ -148,7 +171,7 @@ describe('Character Listing API', () => {
 
     it('should handle server errors gracefully', async () => {
       // Mock service to throw error
-      jest.spyOn(characterService, 'getCharacterById').mockImplementationOnce(() => {
+      jest.spyOn(characterService, 'getCharacterById').mockImplementationOnce(async () => {
         throw new Error('Test error');
       });
 
@@ -156,16 +179,27 @@ describe('Character Listing API', () => {
         .get('/api/characters/test-id')
         .expect(500);
 
-      expect(response.body.error.message).toBe('Test error');
+      expect(response.body.error.message).toBe('Internal server error');
     });
   });
 
   describe('Character List View Data Structure', () => {
     it('should provide all fields needed for the character list table', async () => {
-      // Create one character of each type
-      await characterService.createCharacter('WarriorTest', 'Warrior');
-      await characterService.createCharacter('ThiefTest', 'Thief');  
-      await characterService.createCharacter('MageTest', 'Mage');
+      // Create one character of each type via API
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'WarriorTest', job: 'Warrior' })
+        .expect(201);
+      
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'ThiefTest', job: 'Thief' })
+        .expect(201);
+      
+      await request(app)
+        .post('/api/characters')
+        .send({ name: 'MageTest', job: 'Mage' })
+        .expect(201);
 
       const response = await request(app)
         .get('/api/characters')
@@ -187,17 +221,38 @@ describe('Character Listing API', () => {
     });
 
     it('should display characters with mixed Alive/Dead statuses like in the screenshot', async () => {
-      // Create characters matching the screenshot
-      const chamness = await characterService.createCharacter('Chamness', 'Warrior');
-      const aetherius = await characterService.createCharacter('Aetherius', 'Mage');
-      const mera = await characterService.createCharacter('Mera', 'Thief');
-      const vyncent = await characterService.createCharacter('Vyncent', 'Warrior');
-      const thatetch = await characterService.createCharacter('Thatetch', 'Warrior');
+      // Create characters matching the screenshot via API
+      const chamness = await request(app)
+        .post('/api/characters')
+        .send({ name: 'Chamness', job: 'Warrior' })
+        .expect(201);
+      
+      const aetherius = await request(app)
+        .post('/api/characters')
+        .send({ name: 'Aetherius', job: 'Mage' })
+        .expect(201);
+      
+      const mera = await request(app)
+        .post('/api/characters')
+        .send({ name: 'Mera', job: 'Thief' })
+        .expect(201);
+      
+      const vyncent = await request(app)
+        .post('/api/characters')
+        .send({ name: 'Vyncent', job: 'Warrior' })
+        .expect(201);
+      
+      const thatetch = await request(app)
+        .post('/api/characters')
+        .send({ name: 'Thatetch', job: 'Warrior' })
+        .expect(201);
 
-      // Set some characters to Dead status (like in the screenshot)
-      await characterService.updateCharacterStatus(aetherius.id, 'Dead');
-      await characterService.updateCharacterStatus(vyncent.id, 'Dead');
-      await characterService.updateCharacterStatus(thatetch.id, 'Dead');
+      // Set some characters to Dead status (simulate via service since no direct API for status update)
+      const container = ServiceContainer.getInstance();
+      const testCharacterService = container.getCharacterService();
+      await testCharacterService.updateCharacterStatus(aetherius.body.id, 'Dead');
+      await testCharacterService.updateCharacterStatus(vyncent.body.id, 'Dead');
+      await testCharacterService.updateCharacterStatus(thatetch.body.id, 'Dead');
 
       const response = await request(app)
         .get('/api/characters')
