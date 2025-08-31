@@ -32,7 +32,7 @@ describe('Character Creation API', () => {
         name: 'TestHero',
         job: 'Warrior',
         status: 'Alive',
-        healthPoints: 20,
+        maxHealthPoints: 20,
         strength: 10,
         dexterity: 5,
         intelligence: 5,
@@ -57,7 +57,7 @@ describe('Character Creation API', () => {
         name: 'SneakyRogue',
         job: 'Thief',
         status: 'Alive',
-        healthPoints: 15,
+        maxHealthPoints: 15,
         strength: 4,
         dexterity: 10,
         intelligence: 4,
@@ -81,7 +81,7 @@ describe('Character Creation API', () => {
         name: 'WiseWizard',
         job: 'Mage',
         status: 'Alive',
-        healthPoints: 12,
+        maxHealthPoints: 12,
         strength: 5,
         dexterity: 6,
         intelligence: 10,
@@ -216,7 +216,7 @@ describe('Character Creation API', () => {
         expect.arrayContaining([
           {
             name: 'Warrior',
-            healthPoints: 20,
+            maxHealthPoints: 20,
             strength: 10,
             dexterity: 5,
             intelligence: 5,
@@ -225,7 +225,7 @@ describe('Character Creation API', () => {
           },
           {
             name: 'Thief',
-            healthPoints: 15,
+            maxHealthPoints: 15,
             strength: 4,
             dexterity: 10,
             intelligence: 4,
@@ -234,7 +234,7 @@ describe('Character Creation API', () => {
           },
           {
             name: 'Mage',
-            healthPoints: 12,
+            maxHealthPoints: 12,
             strength: 5,
             dexterity: 6,
             intelligence: 10,

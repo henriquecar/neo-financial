@@ -18,7 +18,7 @@ const options = {
       schemas: {
         Character: {
           type: 'object',
-          required: ['id', 'name', 'job', 'status', 'healthPoints', 'strength', 'dexterity', 'intelligence', 'attackModifier', 'speedModifier'],
+          required: ['id', 'name', 'job', 'status', 'maxHealthPoints', 'strength', 'dexterity', 'intelligence', 'attackModifier', 'speedModifier'],
           properties: {
             id: {
               type: 'string',
@@ -45,9 +45,9 @@ const options = {
               description: 'Character status',
               example: 'Alive'
             },
-            healthPoints: {
+            maxHealthPoints: {
               type: 'number',
-              description: 'Character health points',
+              description: 'Character maximum health points',
               example: 20
             },
             strength: {
@@ -79,7 +79,7 @@ const options = {
         },
         Job: {
           type: 'object',
-          required: ['name', 'healthPoints', 'strength', 'dexterity', 'intelligence', 'attackFormula', 'speedFormula'],
+          required: ['name', 'maxHealthPoints', 'strength', 'dexterity', 'intelligence', 'attackFormula', 'speedFormula'],
           properties: {
             name: {
               type: 'string',
@@ -87,7 +87,7 @@ const options = {
               description: 'Job name',
               example: 'Warrior'
             },
-            healthPoints: {
+            maxHealthPoints: {
               type: 'number',
               description: 'Base health points for this job',
               example: 20
@@ -250,7 +250,7 @@ const options = {
         },
         CharacterDetail: {
           type: 'object',
-          required: ['id', 'name', 'job', 'status', 'healthPoints', 'battleModifiers'],
+          required: ['id', 'name', 'job', 'status', 'maxHealthPoints', 'currentHealthPoints', 'battleModifiers'],
           properties: {
             id: {
               type: 'string',
@@ -274,10 +274,15 @@ const options = {
               description: 'Character status',
               example: 'Alive'
             },
-            healthPoints: {
+            maxHealthPoints: {
               type: 'number',
-              description: 'Character health points',
+              description: 'Maximum life points for the character',
               example: 20
+            },
+            currentHealthPoints: {
+              type: 'number',
+              description: 'Current life points for the character',
+              example: 15
             },
             battleModifiers: {
               $ref: '#/components/schemas/BattleModifiers'

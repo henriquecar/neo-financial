@@ -10,7 +10,8 @@ export interface CharacterDetail {
   name: string;
   job: string;
   status: string;
-  healthPoints: number;
+  maxHealthPoints: number;
+  currentHealthPoints: number;
   battleModifiers: BattleModifiers;
 }
 
@@ -20,7 +21,8 @@ export function mapToCharacterDetail(character: Character): CharacterDetail {
     name: character.name,
     job: character.job,
     status: character.status,
-    healthPoints: character.healthPoints,
+    maxHealthPoints: character.maxHealthPoints,
+    currentHealthPoints: character.currentHealthPoints,
     battleModifiers: {
       attack: character.attackModifier,
       speed: character.speedModifier

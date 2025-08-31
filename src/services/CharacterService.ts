@@ -51,7 +51,8 @@ class CharacterService {
       name,
       job,
       status: 'Alive',
-      healthPoints: baseStats.healthPoints,
+      maxHealthPoints: baseStats.healthPoints,
+      currentHealthPoints: baseStats.healthPoints, // Start at full health
       strength: baseStats.strength,
       dexterity: baseStats.dexterity,
       intelligence: baseStats.intelligence,

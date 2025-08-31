@@ -243,7 +243,7 @@ describe('Pagination', () => {
         expect(character).toHaveProperty('status');
         
         // Verify it does NOT have detailed stats (those are in individual character endpoint)
-        expect(character).not.toHaveProperty('healthPoints');
+        expect(character).not.toHaveProperty('maxHealthPoints');
         expect(character).not.toHaveProperty('strength');
         expect(character).not.toHaveProperty('dexterity');
         expect(character).not.toHaveProperty('intelligence');

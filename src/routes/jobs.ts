@@ -50,7 +50,7 @@ router.get('/', (req, res) => {
       
       return {
         name: job,
-        healthPoints: stats.healthPoints,
+        maxHealthPoints: stats.healthPoints,
         strength: stats.strength,
         dexterity: stats.dexterity,
         intelligence: stats.intelligence,

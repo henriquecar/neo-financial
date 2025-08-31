@@ -49,7 +49,7 @@ describe('Character Listing API', () => {
         expect(character.status).toBe('Alive'); // All new characters should be alive
         
         // Verify it does NOT contain detailed stats (those should only be in individual character endpoint)
-        expect(character).not.toHaveProperty('healthPoints');
+        expect(character).not.toHaveProperty('maxHealthPoints');
         expect(character).not.toHaveProperty('strength');
         expect(character).not.toHaveProperty('dexterity');
         expect(character).not.toHaveProperty('intelligence');
@@ -115,7 +115,8 @@ describe('Character Listing API', () => {
         name: 'TestHero',
         job: 'Warrior',
         status: 'Alive',
-        healthPoints: 20,
+        maxHealthPoints: 20,
+        currentHealthPoints: 20,
         battleModifiers: {
           attack: 9,
           speed: 4
