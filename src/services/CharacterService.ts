@@ -9,15 +9,23 @@ class CharacterService {
     return Array.from(this.characters.values());
   }
 
-  getCharactersPaginated(paginationQuery: PaginationQuery): PaginationResult<Character> {
+  getCharactersPaginated(paginationQuery: PaginationQuery): PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>> {
     const allCharacters = Array.from(this.characters.values());
     const totalItems = allCharacters.length;
     const totalPages = Math.ceil(totalItems / paginationQuery.limit);
     
-    // Extract the requested page of characters
+    // Extract the requested page of characters with only essential fields
     const startIndex = paginationQuery.offset;
     const endIndex = startIndex + paginationQuery.limit;
-    const data = allCharacters.slice(startIndex, endIndex);
+    const charactersSlice = allCharacters.slice(startIndex, endIndex);
+    
+    // Map to lightweight character objects with only essential fields
+    const data = charactersSlice.map(character => ({
+      id: character.id,
+      name: character.name,
+      job: character.job,
+      status: character.status
+    }));
 
     return {
       data,

@@ -11,7 +11,7 @@ const router = express.Router();
  * /characters:
  *   get:
  *     summary: Get characters with pagination
- *     description: Retrieve a paginated list of characters with their name, job, and status (alive/dead)
+ *     description: Retrieve a paginated list of characters with essential fields only (id, name, job, status). Use GET /characters/{id} for full character details.
  *     tags: [Characters]
  *     parameters:
  *       - in: query

@@ -155,15 +155,9 @@ curl "http://localhost:3000/api/characters?limit=100"
   "data": [
     {
       "id": "uuid",
-      "name": "Character_Name",
+      "name": "Character_Name", 
       "job": "Warrior",
-      "status": "Alive",
-      "healthPoints": 20,
-      "strength": 10,
-      "dexterity": 5,
-      "intelligence": 5,
-      "attackModifier": 9,
-      "speedModifier": 4
+      "status": "Alive"
     }
   ],
   "pagination": {
@@ -176,6 +170,8 @@ curl "http://localhost:3000/api/characters?limit=100"
   }
 }
 ```
+
+**Note:** The character list endpoint returns only essential fields (id, name, job, status) for optimal performance. For complete character details including stats and modifiers, use the individual character endpoint: `GET /api/characters/{id}`
 
 ### Character Creation Example
 

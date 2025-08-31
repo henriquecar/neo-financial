@@ -40,13 +40,21 @@ describe('Character Listing API', () => {
       expect(response.body).toHaveProperty('pagination');
       expect(response.body.data).toHaveLength(3);
       
-      // Verify it contains all required fields for the list view
+      // Verify it contains only the essential fields for the list view
       response.body.data.forEach((character: any) => {
         expect(character).toHaveProperty('id');
         expect(character).toHaveProperty('name');
         expect(character).toHaveProperty('job');
         expect(character).toHaveProperty('status');
         expect(character.status).toBe('Alive'); // All new characters should be alive
+        
+        // Verify it does NOT contain detailed stats (those should only be in individual character endpoint)
+        expect(character).not.toHaveProperty('healthPoints');
+        expect(character).not.toHaveProperty('strength');
+        expect(character).not.toHaveProperty('dexterity');
+        expect(character).not.toHaveProperty('intelligence');
+        expect(character).not.toHaveProperty('attackModifier');
+        expect(character).not.toHaveProperty('speedModifier');
       });
 
       // Verify specific characters are present
@@ -79,20 +87,17 @@ describe('Character Listing API', () => {
 
       expect(response.body.data).toHaveLength(8);
 
-      // Verify each character has the required structure for the list view
+      // Verify each character has only the essential fields for the list view
       response.body.data.forEach((character: any) => {
         expect(character).toMatchObject({
           id: expect.any(String),
           name: expect.any(String),
           job: expect.stringMatching(/^(Warrior|Thief|Mage)$/),
-          status: 'Alive',
-          healthPoints: expect.any(Number),
-          strength: expect.any(Number),
-          dexterity: expect.any(Number),
-          intelligence: expect.any(Number),
-          attackModifier: expect.any(Number),
-          speedModifier: expect.any(Number)
+          status: 'Alive'
         });
+        
+        // Ensure no detailed stats are included in list view
+        expect(Object.keys(character)).toEqual(['id', 'name', 'job', 'status']);
       });
     });
   });
@@ -154,21 +159,13 @@ describe('Character Listing API', () => {
 
       expect(response.body.data).toHaveLength(3);
 
-      // Verify the response structure matches what the UI needs
-      const expectedFields = [
-        'id',           // For details link
-        'name',         // Character Name column
-        'job',          // Job column  
-        'status',       // Status column (Alive/Dead)
-        'healthPoints', // For details view
-        'strength',     // For details view
-        'dexterity',    // For details view
-        'intelligence', // For details view
-        'attackModifier', // For details view
-        'speedModifier'   // For details view
-      ];
+      // Verify the response structure matches what the UI needs for the character list
+      const expectedFields = ['id', 'name', 'job', 'status']; // Only essential fields for list view
 
       response.body.data.forEach((character: any) => {
+        // Check that it has exactly the expected fields
+        expect(Object.keys(character).sort()).toEqual(expectedFields.sort());
+        
         expectedFields.forEach(field => {
           expect(character).toHaveProperty(field);
         });

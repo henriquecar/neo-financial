@@ -155,15 +155,43 @@ const options = {
             }
           }
         },
+        CharacterListItem: {
+          type: 'object',
+          required: ['id', 'name', 'job', 'status'],
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique identifier for the character',
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            },
+            name: {
+              type: 'string',
+              description: 'Character name',
+              example: 'Dark_Knight'
+            },
+            job: {
+              type: 'string',
+              enum: ['Warrior', 'Thief', 'Mage'],
+              description: 'Character class/job',
+              example: 'Warrior'
+            },
+            status: {
+              type: 'string',
+              enum: ['Alive', 'Dead'],
+              description: 'Character status',
+              example: 'Alive'
+            }
+          }
+        },
         PaginatedCharacters: {
           type: 'object',
           properties: {
             data: {
               type: 'array',
               items: {
-                $ref: '#/components/schemas/Character'
+                $ref: '#/components/schemas/CharacterListItem'
               },
-              description: 'Array of characters for the current page'
+              description: 'Array of character summary items for the current page'
             },
             pagination: {
               $ref: '#/components/schemas/PaginationInfo'

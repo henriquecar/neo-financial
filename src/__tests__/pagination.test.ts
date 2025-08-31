@@ -226,7 +226,7 @@ describe('Pagination', () => {
       expect(pagination.itemsPerPage).toBe(10);
     });
 
-    it('should maintain character data structure in paginated response', async () => {
+    it('should maintain lightweight character data structure in paginated response', async () => {
       const response = await request(app)
         .get('/api/characters?page=1&limit=5')
         .expect(200);
@@ -235,18 +235,23 @@ describe('Pagination', () => {
       
       expect(data).toHaveLength(5);
       
-      // Verify each character has the expected structure
+      // Verify each character has only the essential fields
       data.forEach((character: any) => {
         expect(character).toHaveProperty('id');
         expect(character).toHaveProperty('name');
         expect(character).toHaveProperty('job');
         expect(character).toHaveProperty('status');
-        expect(character).toHaveProperty('healthPoints');
-        expect(character).toHaveProperty('strength');
-        expect(character).toHaveProperty('dexterity');
-        expect(character).toHaveProperty('intelligence');
-        expect(character).toHaveProperty('attackModifier');
-        expect(character).toHaveProperty('speedModifier');
+        
+        // Verify it does NOT have detailed stats (those are in individual character endpoint)
+        expect(character).not.toHaveProperty('healthPoints');
+        expect(character).not.toHaveProperty('strength');
+        expect(character).not.toHaveProperty('dexterity');
+        expect(character).not.toHaveProperty('intelligence');
+        expect(character).not.toHaveProperty('attackModifier');
+        expect(character).not.toHaveProperty('speedModifier');
+        
+        // Verify it has exactly 4 fields
+        expect(Object.keys(character)).toEqual(['id', 'name', 'job', 'status']);
       });
     });
   });
