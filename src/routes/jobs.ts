@@ -3,6 +3,29 @@ import { JOB_BASE_STATS, JobType } from '../models/Character';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /jobs:
+ *   get:
+ *     summary: Get all available jobs
+ *     description: Retrieve information about all available character jobs/classes with their base stats and modifier formulas
+ *     tags: [Jobs]
+ *     responses:
+ *       200:
+ *         description: List of all available jobs with their stats and formulas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Job'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/', (req, res) => {
   try {
     const jobs = Object.keys(JOB_BASE_STATS).map(jobName => {

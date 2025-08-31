@@ -116,7 +116,38 @@ src/
 
 ## API Documentation
 
-*API endpoints and usage examples will be documented here as features are implemented.*
+The API is fully documented using Swagger/OpenAPI. Once the server is running, you can access the interactive API documentation at:
+
+**🔗 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
+
+### API Endpoints Overview
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/characters` | GET | Get all characters with name, job, and status |
+| `/api/characters` | POST | Create a new character |
+| `/api/characters/:id` | GET | Get character details by ID |
+| `/api/jobs` | GET | Get all available jobs with stats and formulas |
+| `/api/health` | GET | Health check endpoint |
+
+### Character Creation Example
+
+```bash
+curl -X POST http://localhost:3000/api/characters \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Hero_Knight",
+    "job": "Warrior"
+  }'
+```
+
+### Get All Characters Example
+
+```bash
+curl http://localhost:3000/api/characters
+```
+
+For detailed request/response schemas, validation rules, and interactive testing, visit the Swagger documentation at `/api-docs`.
 
 ## Assignment Requirements
 
