@@ -2,8 +2,9 @@ import request from 'supertest';
 import express from 'express';
 import characterRoutes from '../routes/characters';
 import jobRoutes from '../routes/jobs';
-import characterService from '../services/CharacterService';
+import { ServiceContainer } from '../container/ServiceContainer';
 import { TestCharacter } from '../types/test';
+import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 
 const app = express();
 app.use(express.json());
@@ -11,10 +12,12 @@ app.use('/api/characters', characterRoutes);
 app.use('/api/jobs', jobRoutes);
 
 describe('Character Creation API', () => {
-  beforeEach(() => {
-    // Clear all characters before each test
-    const characters = characterService.getAllCharacters();
-    characters.forEach((char: TestCharacter) => characterService.deleteCharacter(char.id));
+  beforeEach(async () => {
+    // Reset the service container for each test
+    ServiceContainer.reset();
+    const container = ServiceContainer.getInstance();
+    const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
+    characterRepository.clear();
   });
 
   describe('POST /api/characters', () => {
@@ -102,10 +105,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Name must be between 4 and 15 characters inclusive']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Name must be between 4 and 15 characters inclusive']);
     });
 
     it('should reject character with name too long', async () => {
@@ -119,10 +120,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Name must be between 4 and 15 characters inclusive']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Name must be between 4 and 15 characters inclusive']);
     });
 
     it('should reject character with invalid name characters', async () => {
@@ -136,10 +135,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Name must contain only letters (a-z, A-Z) or underscore (_) characters']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Name must contain only letters (a-z, A-Z) or underscore (_) characters']);
     });
 
     it('should accept character name with underscores', async () => {
@@ -167,10 +164,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Job must be one of: Warrior, Thief, Mage']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Job must be one of: Warrior, Thief, Mage']);
     });
 
     it('should reject character with missing name', async () => {
@@ -183,10 +178,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Name is required']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Name is required']);
     });
 
     it('should reject character with missing job', async () => {
@@ -199,10 +192,8 @@ describe('Character Creation API', () => {
         .send(characterData)
         .expect(400);
 
-      expect(response.body).toEqual({
-        error: 'Validation failed',
-        details: ['Job is required']
-      });
+      expect(response.body.error.message).toBe('Validation failed');
+      expect(response.body.error.details).toEqual(['Job is required']);
     });
   });
 

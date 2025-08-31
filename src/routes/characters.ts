@@ -1,11 +1,15 @@
 import express from 'express';
-import characterService from '../services/CharacterService';
-import { validateCharacterCreation } from '../utils/validation';
-import { parsePaginationParams } from '../utils/pagination';
+import { ServiceContainer } from '../container/ServiceContainer';
 import { mapToCharacterDetail } from '../types/characterDetail';
 import { JobType } from '../models/Character';
+import { asyncHandler } from '../utils/asyncHandler';
+import { NotFoundError } from '../errors/CustomErrors';
+import { validateBody, validateQuery, validateParams } from '../middleware/validation';
+import { createCharacterSchema, paginationSchema, characterIdParamsSchema } from '../schemas/characterSchemas';
 
 const router = express.Router();
+const container = ServiceContainer.getInstance();
+const characterService = container.getCharacterService();
 
 /**
  * @swagger
@@ -50,16 +54,17 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', (req, res) => {
-  try {
-    const paginationQuery = parsePaginationParams(req.query);
-    const result = characterService.getCharactersPaginated(paginationQuery);
-    res.json(result);
-  } catch (error) {
-    console.error('Error fetching characters:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.get('/', validateQuery(paginationSchema), asyncHandler(async (req, res) => {
+  // Convert validated query to PaginationQuery format
+  const { page, limit } = req.query as any;
+  const paginationQuery = {
+    page,
+    limit,
+    offset: (page - 1) * limit
+  };
+  const result = await characterService.getCharactersPaginated(paginationQuery);
+  res.json(result);
+}));
 
 /**
  * @swagger
@@ -95,23 +100,18 @@ router.get('/', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', (req, res) => {
-  try {
-    const { id } = req.params;
-    const character = characterService.getCharacterById(id);
-    
-    if (!character) {
-      return res.status(404).json({ error: 'Character not found' });
-    }
-    
-    // Transform to character detail format with battleModifiers
-    const characterDetail = mapToCharacterDetail(character);
-    res.json(characterDetail);
-  } catch (error) {
-    console.error('Error fetching character:', error);
-    res.status(500).json({ error: 'Internal server error' });
+router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const character = await characterService.getCharacterById(id);
+  
+  if (!character) {
+    throw new NotFoundError('Character', id);
   }
-});
+  
+  // Transform to character detail format with battleModifiers
+  const characterDetail = mapToCharacterDetail(character);
+  res.json(characterDetail);
+}));
 
 /**
  * @swagger
@@ -162,24 +162,10 @@ router.get('/:id', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', (req, res) => {
-  try {
-    const { name, job } = req.body;
-
-    const validation = validateCharacterCreation(name, job);
-    if (!validation.isValid) {
-      return res.status(400).json({ 
-        error: 'Validation failed', 
-        details: validation.errors 
-      });
-    }
-
-    const character = characterService.createCharacter(name, job as JobType);
-    res.status(201).json(character);
-  } catch (error) {
-    console.error('Error creating character:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+router.post('/', validateBody(createCharacterSchema), asyncHandler(async (req, res) => {
+  const { name, job } = req.body;
+  const character = await characterService.createCharacter(name, job as JobType);
+  res.status(201).json(character);
+}));
 
 export default router;

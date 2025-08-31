@@ -2,8 +2,8 @@ import request from 'supertest';
 import express from 'express';
 import battleRoutes from '../routes/battle';
 import characterRoutes from '../routes/characters';
-import characterService from '../services/CharacterService';
-import battleService from '../services/BattleService';
+import { ServiceContainer } from '../container/ServiceContainer';
+import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
@@ -16,16 +16,22 @@ describe('Battle System', () => {
   let warrior: any;
   let mage: any;
   let thief: any;
+  let characterService: any;
+  let battleService: any;
 
-  beforeEach(() => {
-    // Clear all characters before each test
-    const characters = characterService.getAllCharacters();
-    characters.forEach((char: any) => characterService.deleteCharacter(char.id));
+  beforeEach(async () => {
+    // Reset the service container for each test
+    ServiceContainer.reset();
+    const container = ServiceContainer.getInstance();
+    characterService = container.getCharacterService();
+    battleService = container.getBattleService();
+    const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
+    characterRepository.clear();
 
     // Create test characters
-    warrior = characterService.createCharacter('TestWarrior', 'Warrior');
-    mage = characterService.createCharacter('TestMage', 'Mage');
-    thief = characterService.createCharacter('TestThief', 'Thief');
+    warrior = await characterService.createCharacter('TestWarrior', 'Warrior');
+    mage = await characterService.createCharacter('TestMage', 'Mage');
+    thief = await characterService.createCharacter('TestThief', 'Thief');
   });
 
   describe('BattleService', () => {
@@ -60,17 +66,17 @@ describe('Battle System', () => {
       expect(lastMessage).toMatch(/^.+ wins the battle! .+ still has \d+ HP remaining!$/);
 
       // Check that speed announcements and attack messages are present
-      const speedMessages = result.battleLog.filter(msg => msg.includes('speed was faster than'));
-      const attackMessages = result.battleLog.filter(msg => msg.includes('attacks') && msg.includes('for'));
+      const speedMessages = result.battleLog.filter((msg: string) => msg.includes('speed was faster than'));
+      const attackMessages = result.battleLog.filter((msg: string) => msg.includes('attacks') && msg.includes('for'));
 
       expect(speedMessages.length).toBeGreaterThan(0);
       expect(attackMessages.length).toBeGreaterThan(0);
     });
 
-    it('should handle multiple rounds if characters are balanced', () => {
+    it('should handle multiple rounds if characters are balanced', async () => {
       // Create two identical warriors for a potentially longer battle
-      const warrior1 = characterService.createCharacter('Warrior1', 'Warrior');
-      const warrior2 = characterService.createCharacter('Warrior2', 'Warrior');
+      const warrior1 = await characterService.createCharacter('Warrior1', 'Warrior');
+      const warrior2 = await characterService.createCharacter('Warrior2', 'Warrior');
 
       const result = battleService.battle(warrior1, warrior2);
 
@@ -78,7 +84,7 @@ describe('Battle System', () => {
       expect(result.rounds.length).toBe(result.totalRounds);
 
       // Check that all rounds are properly structured
-      result.rounds.forEach((round, index) => {
+      result.rounds.forEach((round: any, index: number) => {
         expect(round.roundNumber).toBe(index + 1);
         expect(round.turns.length).toBeGreaterThan(0);
         expect(round.turns.length).toBeLessThanOrEqual(2); // Max 2 turns per round

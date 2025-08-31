@@ -1,7 +1,8 @@
 import request from 'supertest';
 import express from 'express';
 import characterRoutes from '../routes/characters';
-import characterService from '../services/CharacterService';
+import { ServiceContainer } from '../container/ServiceContainer';
+import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 import { parsePaginationParams } from '../utils/pagination';
 
 const app = express();
@@ -9,10 +10,15 @@ app.use(express.json());
 app.use('/api/characters', characterRoutes);
 
 describe('Pagination', () => {
-  beforeEach(() => {
-    // Clear all characters before each test
-    const characters = characterService.getAllCharacters();
-    characters.forEach((char: any) => characterService.deleteCharacter(char.id));
+  let characterService: any;
+
+  beforeEach(async () => {
+    // Reset the service container for each test
+    ServiceContainer.reset();
+    const container = ServiceContainer.getInstance();
+    characterService = container.getCharacterService();
+    const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
+    characterRepository.clear();
   });
 
   describe('parsePaginationParams utility', () => {
@@ -84,7 +90,7 @@ describe('Pagination', () => {
       // Create 25 test characters for pagination testing
       for (let i = 1; i <= 25; i++) {
         const job = i % 3 === 0 ? 'Mage' : i % 2 === 0 ? 'Thief' : 'Warrior';
-        characterService.createCharacter(`Character_${i.toString().padStart(2, '0')}`, job as any);
+        await characterService.createCharacter(`Character_${i.toString().padStart(2, '0')}`, job as any);
       }
     });
 
@@ -183,8 +189,9 @@ describe('Pagination', () => {
 
     it('should handle edge case with no characters', async () => {
       // Clear all characters
-      const characters = characterService.getAllCharacters();
-      characters.forEach((char: any) => characterService.deleteCharacter(char.id));
+      const container = ServiceContainer.getInstance();
+      const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
+      characterRepository.clear();
 
       const response = await request(app)
         .get('/api/characters?page=1&limit=10')

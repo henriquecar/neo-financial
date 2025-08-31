@@ -1,11 +1,15 @@
 import express from 'express';
-import battleService from '../services/BattleService';
-import characterService from '../services/CharacterService';
+import { ServiceContainer } from '../container/ServiceContainer';
 import { BattleRequest } from '../models/Battle';
 import { NotFoundError, ConflictError } from '../errors/CustomErrors';
-import { asyncHandler } from '../middleware/errorHandler';
+import { asyncHandler } from '../utils/asyncHandler';
+import { validateBody } from '../middleware/validation';
+import { battleRequestSchema } from '../schemas/battleSchemas';
 
 const router = express.Router();
+const container = ServiceContainer.getInstance();
+const characterService = container.getCharacterService();
+const battleService = container.getBattleService();
 
 /**
  * @swagger
@@ -46,21 +50,12 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', asyncHandler(async (req: express.Request, res: express.Response) => {
+router.post('/', validateBody(battleRequestSchema), asyncHandler(async (req: express.Request, res: express.Response) => {
   const { character1Id, character2Id }: BattleRequest = req.body;
 
-  // Validation
-  if (!character1Id || !character2Id) {
-    throw new ConflictError('Both character1Id and character2Id are required');
-  }
-
-  if (character1Id === character2Id) {
-    throw new ConflictError('A character cannot battle against itself');
-  }
-
   // Get characters
-  const character1 = characterService.getCharacterById(character1Id);
-  const character2 = characterService.getCharacterById(character2Id);
+  const character1 = await characterService.getCharacterById(character1Id);
+  const character2 = await characterService.getCharacterById(character2Id);
 
   if (!character1) {
     throw new NotFoundError('Character', character1Id);
@@ -83,9 +78,9 @@ router.post('/', asyncHandler(async (req: express.Request, res: express.Response
   const battleResult = battleService.battle(character1, character2);
 
   // Update character statuses and health points
-  characterService.updateCharacterStatus(battleResult.loser.character.id, 'Dead');
-  characterService.updateCharacterHealth(battleResult.loser.character.id, battleResult.loser.currentHealthPoints);
-  characterService.updateCharacterHealth(battleResult.winner.character.id, battleResult.winner.currentHealthPoints);
+  await characterService.updateCharacterStatus(battleResult.loser.character.id, 'Dead');
+  await characterService.updateCharacterHealth(battleResult.loser.character.id, battleResult.loser.currentHealthPoints);
+  await characterService.updateCharacterHealth(battleResult.winner.character.id, battleResult.winner.currentHealthPoints);
   
   res.json(battleResult);
 }));

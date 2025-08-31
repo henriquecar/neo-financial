@@ -2,8 +2,11 @@ import { Character } from '../models/Character';
 import { BattleParticipant, BattleRound, BattleResult, BattleTurn } from '../models/Battle';
 import { BattleTimeoutError } from '../errors/CustomErrors';
 import { ConfigService } from '../config/config';
+import { ICharacterService } from './interfaces/ICharacterService';
+import { IBattleService } from './interfaces/IBattleService';
 
-class BattleService {
+class BattleService implements IBattleService {
+  constructor(private characterService: ICharacterService) {}
   
   private generateRandomInt(max: number): number {
     return Math.floor(Math.random() * (max + 1));
@@ -143,4 +146,3 @@ class BattleService {
 }
 
 export { BattleService };
-export default new BattleService(); // Keep for backward compatibility during transition

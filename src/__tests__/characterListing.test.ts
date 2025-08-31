@@ -1,7 +1,8 @@
 import request from 'supertest';
 import express from 'express';
 import characterRoutes from '../routes/characters';
-import characterService from '../services/CharacterService';
+import { ServiceContainer } from '../container/ServiceContainer';
+import { InMemoryCharacterRepository } from '../repositories/InMemoryCharacterRepository';
 import { TestCharacter, TestCharacterListItem } from '../types/test';
 
 const app = express();
@@ -9,10 +10,15 @@ app.use(express.json());
 app.use('/api/characters', characterRoutes);
 
 describe('Character Listing API', () => {
-  beforeEach(() => {
-    // Clear all characters before each test
-    const characters = characterService.getAllCharacters();
-    characters.forEach((char: TestCharacter) => characterService.deleteCharacter(char.id));
+  let characterService: any;
+
+  beforeEach(async () => {
+    // Reset the service container for each test
+    ServiceContainer.reset();
+    const container = ServiceContainer.getInstance();
+    characterService = container.getCharacterService();
+    const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
+    characterRepository.clear();
   });
 
   describe('GET /api/characters', () => {
@@ -29,9 +35,9 @@ describe('Character Listing API', () => {
 
     it('should return all characters with name, job, and status for list view', async () => {
       // Create multiple characters with different jobs
-      const warrior = characterService.createCharacter('Chamness', 'Warrior');
-      const mage = characterService.createCharacter('Aetherius', 'Mage');
-      const thief = characterService.createCharacter('Mera', 'Thief');
+      const warrior = await characterService.createCharacter('Chamness', 'Warrior');
+      const mage = await characterService.createCharacter('Aetherius', 'Mage');
+      const thief = await characterService.createCharacter('Mera', 'Thief');
 
       const response = await request(app)
         .get('/api/characters')
@@ -78,9 +84,9 @@ describe('Character Listing API', () => {
         { name: 'Thatetch', job: 'Warrior' as const }
       ];
 
-      const createdCharacters = characters.map(char => 
+      const createdCharacters = await Promise.all(characters.map(char => 
         characterService.createCharacter(char.name, char.job)
-      );
+      ));
 
       const response = await request(app)
         .get('/api/characters')
@@ -105,7 +111,7 @@ describe('Character Listing API', () => {
 
   describe('GET /api/characters/:id', () => {
     it('should return character details by ID with battleModifiers', async () => {
-      const character = characterService.createCharacter('TestHero', 'Warrior');
+      const character = await characterService.createCharacter('TestHero', 'Warrior');
 
       const response = await request(app)
         .get(`/api/characters/${character.id}`)
@@ -137,7 +143,7 @@ describe('Character Listing API', () => {
         .get('/api/characters/non-existent-id')
         .expect(404);
 
-      expect(response.body).toEqual({ error: 'Character not found' });
+      expect(response.body.error.message).toContain('Character with id non-existent-id not found');
     });
 
     it('should handle server errors gracefully', async () => {
@@ -150,16 +156,16 @@ describe('Character Listing API', () => {
         .get('/api/characters/test-id')
         .expect(500);
 
-      expect(response.body).toEqual({ error: 'Internal server error' });
+      expect(response.body.error.message).toBe('Test error');
     });
   });
 
   describe('Character List View Data Structure', () => {
     it('should provide all fields needed for the character list table', async () => {
       // Create one character of each type
-      characterService.createCharacter('WarriorTest', 'Warrior');
-      characterService.createCharacter('ThiefTest', 'Thief');  
-      characterService.createCharacter('MageTest', 'Mage');
+      await characterService.createCharacter('WarriorTest', 'Warrior');
+      await characterService.createCharacter('ThiefTest', 'Thief');  
+      await characterService.createCharacter('MageTest', 'Mage');
 
       const response = await request(app)
         .get('/api/characters')
@@ -182,16 +188,16 @@ describe('Character Listing API', () => {
 
     it('should display characters with mixed Alive/Dead statuses like in the screenshot', async () => {
       // Create characters matching the screenshot
-      const chamness = characterService.createCharacter('Chamness', 'Warrior');
-      const aetherius = characterService.createCharacter('Aetherius', 'Mage');
-      const mera = characterService.createCharacter('Mera', 'Thief');
-      const vyncent = characterService.createCharacter('Vyncent', 'Warrior');
-      const thatetch = characterService.createCharacter('Thatetch', 'Warrior');
+      const chamness = await characterService.createCharacter('Chamness', 'Warrior');
+      const aetherius = await characterService.createCharacter('Aetherius', 'Mage');
+      const mera = await characterService.createCharacter('Mera', 'Thief');
+      const vyncent = await characterService.createCharacter('Vyncent', 'Warrior');
+      const thatetch = await characterService.createCharacter('Thatetch', 'Warrior');
 
       // Set some characters to Dead status (like in the screenshot)
-      characterService.updateCharacterStatus(aetherius.id, 'Dead');
-      characterService.updateCharacterStatus(vyncent.id, 'Dead');
-      characterService.updateCharacterStatus(thatetch.id, 'Dead');
+      await characterService.updateCharacterStatus(aetherius.id, 'Dead');
+      await characterService.updateCharacterStatus(vyncent.id, 'Dead');
+      await characterService.updateCharacterStatus(thatetch.id, 'Dead');
 
       const response = await request(app)
         .get('/api/characters')

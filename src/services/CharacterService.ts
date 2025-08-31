@@ -1,50 +1,31 @@
 import { Character, JobType, JOB_BASE_STATS, calculateAttackModifier, calculateSpeedModifier } from '../models/Character';
 import { PaginationResult, PaginationQuery } from '../types/pagination';
+import { ICharacterRepository } from '../repositories/interfaces/ICharacterRepository';
+import { ICharacterService } from './interfaces/ICharacterService';
 import { v4 as uuidv4 } from 'uuid';
 
-class CharacterService {
-  private characters: Map<string, Character> = new Map();
+class CharacterService implements ICharacterService {
+  constructor(private characterRepository: ICharacterRepository) {}
 
-  getAllCharacters(): Character[] {
-    return Array.from(this.characters.values());
+  async getAllCharacters(): Promise<Character[]> {
+    return this.characterRepository.findAll();
   }
 
-  getCharactersPaginated(paginationQuery: PaginationQuery): PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>> {
-    const allCharacters = Array.from(this.characters.values());
-    const totalItems = allCharacters.length;
-    const totalPages = Math.ceil(totalItems / paginationQuery.limit);
-    
-    // Extract the requested page of characters with only essential fields
-    const startIndex = paginationQuery.offset;
-    const endIndex = startIndex + paginationQuery.limit;
-    const charactersSlice = allCharacters.slice(startIndex, endIndex);
-    
-    // Map to lightweight character objects with only essential fields
-    const data = charactersSlice.map(character => ({
-      id: character.id,
-      name: character.name,
-      job: character.job,
-      status: character.status
-    }));
-
-    return {
-      data,
-      pagination: {
-        currentPage: paginationQuery.page,
-        totalPages,
-        totalItems,
-        itemsPerPage: paginationQuery.limit,
-        hasNextPage: paginationQuery.page < totalPages,
-        hasPreviousPage: paginationQuery.page > 1
-      }
-    };
+  async getCharactersPaginated(paginationQuery: PaginationQuery): Promise<PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>>> {
+    return this.characterRepository.findPaginated(paginationQuery);
   }
 
-  getCharacterById(id: string): Character | undefined {
-    return this.characters.get(id);
+  async getCharacterById(id: string): Promise<Character | undefined> {
+    return this.characterRepository.findById(id);
   }
 
-  createCharacter(name: string, job: JobType): Character {
+  async createCharacter(name: string, job: JobType): Promise<Character> {
+    // Check if character name already exists
+    const nameExists = await this.characterRepository.existsByName(name);
+    if (nameExists) {
+      throw new Error(`Character with name '${name}' already exists`);
+    }
+
     const baseStats = JOB_BASE_STATS[job];
     const character: Character = {
       id: uuidv4(),
@@ -60,34 +41,25 @@ class CharacterService {
       speedModifier: calculateSpeedModifier(job, baseStats.strength, baseStats.dexterity, baseStats.intelligence),
     };
 
-    this.characters.set(character.id, character);
-    return character;
+    return this.characterRepository.create(character);
   }
 
-  deleteCharacter(id: string): boolean {
-    return this.characters.delete(id);
+  async deleteCharacter(id: string): Promise<boolean> {
+    return this.characterRepository.delete(id);
   }
 
-  updateCharacterStatus(id: string, status: 'Alive' | 'Dead'): Character | undefined {
-    const character = this.characters.get(id);
+  async updateCharacterStatus(id: string, status: 'Alive' | 'Dead'): Promise<Character | undefined> {
+    return this.characterRepository.update(id, { status });
+  }
+
+  async updateCharacterHealth(id: string, currentHealthPoints: number): Promise<Character | undefined> {
+    const character = await this.characterRepository.findById(id);
     if (character) {
-      character.status = status;
-      this.characters.set(id, character);
-      return character;
-    }
-    return undefined;
-  }
-
-  updateCharacterHealth(id: string, currentHealthPoints: number): Character | undefined {
-    const character = this.characters.get(id);
-    if (character) {
-      character.currentHealthPoints = Math.max(0, Math.min(currentHealthPoints, character.maxHealthPoints));
-      this.characters.set(id, character);
-      return character;
+      const clampedHealth = Math.max(0, Math.min(currentHealthPoints, character.maxHealthPoints));
+      return this.characterRepository.update(id, { currentHealthPoints: clampedHealth });
     }
     return undefined;
   }
 }
 
 export { CharacterService };
-export default new CharacterService(); // Keep for backward compatibility during transition
