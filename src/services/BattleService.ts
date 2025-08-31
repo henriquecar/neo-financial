@@ -1,5 +1,7 @@
 import { Character } from '../models/Character';
 import { BattleParticipant, BattleRound, BattleResult, BattleTurn } from '../models/Battle';
+import { BattleTimeoutError } from '../errors/CustomErrors';
+import { ConfigService } from '../config/config';
 
 class BattleService {
   
@@ -74,8 +76,11 @@ class BattleService {
     const participant2 = this.createBattleParticipant(character2);
     const rounds: BattleRound[] = [];
     let roundNumber = 1;
+    let maxRounds = ConfigService.MAX_BATTLE_ROUNDS;
 
-    while (participant1.currentHealthPoints > 0 && participant2.currentHealthPoints > 0) {
+    while (participant1.currentHealthPoints > 0 && 
+           participant2.currentHealthPoints > 0 && 
+           maxRounds-- > 0) {
       const { first, second, firstSpeed, secondSpeed } = this.determineRoundOrder(participant1, participant2);
       
       const round: BattleRound = {
@@ -115,6 +120,11 @@ class BattleService {
       roundNumber++;
     }
 
+    // Check for battle timeout
+    if (maxRounds <= 0) {
+      throw new BattleTimeoutError(`Battle exceeded maximum rounds (${ConfigService.MAX_BATTLE_ROUNDS})`);
+    }
+
     // Determine winner and loser
     const winner = participant1.currentHealthPoints > 0 ? participant1 : participant2;
     const loser = participant1.currentHealthPoints === 0 ? participant1 : participant2;
@@ -132,4 +142,5 @@ class BattleService {
   }
 }
 
-export default new BattleService();
+export { BattleService };
+export default new BattleService(); // Keep for backward compatibility during transition

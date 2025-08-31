@@ -3,6 +3,7 @@ import express from 'express';
 import characterRoutes from '../routes/characters';
 import jobRoutes from '../routes/jobs';
 import characterService from '../services/CharacterService';
+import { TestCharacter } from '../types/test';
 
 const app = express();
 app.use(express.json());
@@ -13,7 +14,7 @@ describe('Character Creation API', () => {
   beforeEach(() => {
     // Clear all characters before each test
     const characters = characterService.getAllCharacters();
-    characters.forEach((char: any) => characterService.deleteCharacter(char.id));
+    characters.forEach((char: TestCharacter) => characterService.deleteCharacter(char.id));
   });
 
   describe('POST /api/characters', () => {

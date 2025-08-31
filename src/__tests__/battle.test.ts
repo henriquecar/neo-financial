@@ -4,11 +4,13 @@ import battleRoutes from '../routes/battle';
 import characterRoutes from '../routes/characters';
 import characterService from '../services/CharacterService';
 import battleService from '../services/BattleService';
+import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
 app.use(express.json());
 app.use('/api/battle', battleRoutes);
 app.use('/api/characters', characterRoutes);
+app.use(errorHandler);
 
 describe('Battle System', () => {
   let warrior: any;
@@ -112,9 +114,9 @@ describe('Battle System', () => {
       const response = await request(app)
         .post('/api/battle')
         .send({ character1Id: warrior.id })
-        .expect(400);
+        .expect(409);
 
-      expect(response.body.error).toBe('Both character1Id and character2Id are required');
+      expect(response.body.error.message).toBe('Both character1Id and character2Id are required');
     });
 
     it('should return 400 if characters are the same', async () => {
@@ -124,9 +126,9 @@ describe('Battle System', () => {
           character1Id: warrior.id, 
           character2Id: warrior.id 
         })
-        .expect(400);
+        .expect(409);
 
-      expect(response.body.error).toBe('A character cannot battle against itself');
+      expect(response.body.error.message).toBe('A character cannot battle against itself');
     });
 
     it('should return 400 if character is not found', async () => {
@@ -136,9 +138,9 @@ describe('Battle System', () => {
           character1Id: 'non-existent-id', 
           character2Id: mage.id 
         })
-        .expect(400);
+        .expect(404);
 
-      expect(response.body.error).toMatch(/Character with id .+ not found/);
+      expect(response.body.error.message).toMatch(/Character with id .+ not found/);
     });
 
     it('should return 400 if character is dead', async () => {
@@ -151,9 +153,9 @@ describe('Battle System', () => {
           character1Id: warrior.id, 
           character2Id: mage.id 
         })
-        .expect(400);
+        .expect(409);
 
-      expect(response.body.error).toMatch(/.+ is dead and cannot battle/);
+      expect(response.body.error.message).toMatch(/.+ is dead and cannot battle/);
     });
 
     it('should update loser status to Dead after battle', async () => {

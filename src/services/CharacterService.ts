@@ -89,4 +89,5 @@ class CharacterService {
   }
 }
 
-export default new CharacterService();
+export { CharacterService };
+export default new CharacterService(); // Keep for backward compatibility during transition

@@ -2,6 +2,8 @@ import express from 'express';
 import battleService from '../services/BattleService';
 import characterService from '../services/CharacterService';
 import { BattleRequest } from '../models/Battle';
+import { NotFoundError, ConflictError } from '../errors/CustomErrors';
+import { asyncHandler } from '../middleware/errorHandler';
 
 const router = express.Router();
 
@@ -44,65 +46,48 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', (req, res) => {
-  try {
-    const { character1Id, character2Id }: BattleRequest = req.body;
+router.post('/', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const { character1Id, character2Id }: BattleRequest = req.body;
 
-    // Validation
-    if (!character1Id || !character2Id) {
-      return res.status(400).json({ 
-        error: 'Both character1Id and character2Id are required' 
-      });
-    }
-
-    if (character1Id === character2Id) {
-      return res.status(400).json({ 
-        error: 'A character cannot battle against itself' 
-      });
-    }
-
-    // Get characters
-    const character1 = characterService.getCharacterById(character1Id);
-    const character2 = characterService.getCharacterById(character2Id);
-
-    if (!character1) {
-      return res.status(400).json({ 
-        error: `Character with id ${character1Id} not found` 
-      });
-    }
-
-    if (!character2) {
-      return res.status(400).json({ 
-        error: `Character with id ${character2Id} not found` 
-      });
-    }
-
-    // Check if characters are alive
-    if (character1.status === 'Dead') {
-      return res.status(400).json({ 
-        error: `${character1.name} is dead and cannot battle` 
-      });
-    }
-
-    if (character2.status === 'Dead') {
-      return res.status(400).json({ 
-        error: `${character2.name} is dead and cannot battle` 
-      });
-    }
-
-    // Execute battle
-    const battleResult = battleService.battle(character1, character2);
-
-    // Update character statuses and health points
-    characterService.updateCharacterStatus(battleResult.loser.character.id, 'Dead');
-    characterService.updateCharacterHealth(battleResult.loser.character.id, battleResult.loser.currentHealthPoints);
-    characterService.updateCharacterHealth(battleResult.winner.character.id, battleResult.winner.currentHealthPoints);
-    
-    res.json(battleResult);
-  } catch (error) {
-    console.error('Error during battle:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  // Validation
+  if (!character1Id || !character2Id) {
+    throw new ConflictError('Both character1Id and character2Id are required');
   }
-});
+
+  if (character1Id === character2Id) {
+    throw new ConflictError('A character cannot battle against itself');
+  }
+
+  // Get characters
+  const character1 = characterService.getCharacterById(character1Id);
+  const character2 = characterService.getCharacterById(character2Id);
+
+  if (!character1) {
+    throw new NotFoundError('Character', character1Id);
+  }
+
+  if (!character2) {
+    throw new NotFoundError('Character', character2Id);
+  }
+
+  // Check if characters are alive
+  if (character1.status === 'Dead') {
+    throw new ConflictError(`${character1.name} is dead and cannot battle`);
+  }
+
+  if (character2.status === 'Dead') {
+    throw new ConflictError(`${character2.name} is dead and cannot battle`);
+  }
+
+  // Execute battle
+  const battleResult = battleService.battle(character1, character2);
+
+  // Update character statuses and health points
+  characterService.updateCharacterStatus(battleResult.loser.character.id, 'Dead');
+  characterService.updateCharacterHealth(battleResult.loser.character.id, battleResult.loser.currentHealthPoints);
+  characterService.updateCharacterHealth(battleResult.winner.character.id, battleResult.winner.currentHealthPoints);
+  
+  res.json(battleResult);
+}));
 
 export default router;

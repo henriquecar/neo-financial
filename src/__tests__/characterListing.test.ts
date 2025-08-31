@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import characterRoutes from '../routes/characters';
 import characterService from '../services/CharacterService';
+import { TestCharacter, TestCharacterListItem } from '../types/test';
 
 const app = express();
 app.use(express.json());
@@ -11,7 +12,7 @@ describe('Character Listing API', () => {
   beforeEach(() => {
     // Clear all characters before each test
     const characters = characterService.getAllCharacters();
-    characters.forEach((char: any) => characterService.deleteCharacter(char.id));
+    characters.forEach((char: TestCharacter) => characterService.deleteCharacter(char.id));
   });
 
   describe('GET /api/characters', () => {
@@ -41,7 +42,7 @@ describe('Character Listing API', () => {
       expect(response.body.data).toHaveLength(3);
       
       // Verify it contains only the essential fields for the list view
-      response.body.data.forEach((character: any) => {
+      response.body.data.forEach((character: TestCharacterListItem) => {
         expect(character).toHaveProperty('id');
         expect(character).toHaveProperty('name');
         expect(character).toHaveProperty('job');
@@ -169,7 +170,7 @@ describe('Character Listing API', () => {
       // Verify the response structure matches what the UI needs for the character list
       const expectedFields = ['id', 'name', 'job', 'status']; // Only essential fields for list view
 
-      response.body.data.forEach((character: any) => {
+      response.body.data.forEach((character: TestCharacterListItem) => {
         // Check that it has exactly the expected fields
         expect(Object.keys(character).sort()).toEqual(expectedFields.sort());
         
