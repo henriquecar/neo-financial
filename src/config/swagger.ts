@@ -233,6 +233,57 @@ const options = {
             }
           }
         },
+        BattleModifiers: {
+          type: 'object',
+          properties: {
+            attack: {
+              type: 'number',
+              description: 'Calculated attack modifier based on job and stats',
+              example: 9
+            },
+            speed: {
+              type: 'number', 
+              description: 'Calculated speed modifier based on job and stats',
+              example: 4
+            }
+          }
+        },
+        CharacterDetail: {
+          type: 'object',
+          required: ['id', 'name', 'job', 'status', 'healthPoints', 'battleModifiers'],
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique identifier for the character',
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            },
+            name: {
+              type: 'string',
+              description: 'Character name',
+              example: 'Dark_Knight'
+            },
+            job: {
+              type: 'string',
+              enum: ['Warrior', 'Thief', 'Mage'],
+              description: 'Character class/job',
+              example: 'Warrior'
+            },
+            status: {
+              type: 'string',
+              enum: ['Alive', 'Dead'],
+              description: 'Character status',
+              example: 'Alive'
+            },
+            healthPoints: {
+              type: 'number',
+              description: 'Character health points',
+              example: 20
+            },
+            battleModifiers: {
+              $ref: '#/components/schemas/BattleModifiers'
+            }
+          }
+        },
         Error: {
           type: 'object',
           properties: {

@@ -103,7 +103,7 @@ describe('Character Listing API', () => {
   });
 
   describe('GET /api/characters/:id', () => {
-    it('should return character details by ID', async () => {
+    it('should return character details by ID with battleModifiers', async () => {
       const character = characterService.createCharacter('TestHero', 'Warrior');
 
       const response = await request(app)
@@ -116,12 +116,18 @@ describe('Character Listing API', () => {
         job: 'Warrior',
         status: 'Alive',
         healthPoints: 20,
-        strength: 10,
-        dexterity: 5,
-        intelligence: 5,
-        attackModifier: 9,
-        speedModifier: 4
+        battleModifiers: {
+          attack: 9,
+          speed: 4
+        }
       });
+
+      // Verify base stats are not included
+      expect(response.body).not.toHaveProperty('strength');
+      expect(response.body).not.toHaveProperty('dexterity');
+      expect(response.body).not.toHaveProperty('intelligence');
+      expect(response.body).not.toHaveProperty('attackModifier');
+      expect(response.body).not.toHaveProperty('speedModifier');
     });
 
     it('should return 404 for non-existent character', async () => {

@@ -2,6 +2,7 @@ import express from 'express';
 import characterService from '../services/CharacterService';
 import { validateCharacterCreation } from '../utils/validation';
 import { parsePaginationParams } from '../utils/pagination';
+import { mapToCharacterDetail } from '../types/characterDetail';
 import { JobType } from '../models/Character';
 
 const router = express.Router();
@@ -65,7 +66,7 @@ router.get('/', (req, res) => {
  * /characters/{id}:
  *   get:
  *     summary: Get character by ID
- *     description: Retrieve detailed information about a specific character
+ *     description: Retrieve detailed information about a specific character including health and battle modifiers. Base stats (strength, dexterity, intelligence) are aggregated into battle modifiers.
  *     tags: [Characters]
  *     parameters:
  *       - in: path
@@ -76,11 +77,11 @@ router.get('/', (req, res) => {
  *         description: Character ID
  *     responses:
  *       200:
- *         description: Character details
+ *         description: Character details with battle modifiers
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Character'
+ *               $ref: '#/components/schemas/CharacterDetail'
  *       404:
  *         description: Character not found
  *         content:
@@ -103,7 +104,9 @@ router.get('/:id', (req, res) => {
       return res.status(404).json({ error: 'Character not found' });
     }
     
-    res.json(character);
+    // Transform to character detail format with battleModifiers
+    const characterDetail = mapToCharacterDetail(character);
+    res.json(characterDetail);
   } catch (error) {
     console.error('Error fetching character:', error);
     res.status(500).json({ error: 'Internal server error' });
