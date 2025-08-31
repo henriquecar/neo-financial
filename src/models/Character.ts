@@ -13,8 +13,8 @@ export interface Character {
   name: string;
   job: JobType;
   status: CharacterStatus;
-  maxHealthPoints: number;
   currentHealthPoints: number;
+  maxHealthPoints: number;
   strength: number;
   dexterity: number;
   intelligence: number;

@@ -289,6 +289,133 @@ const options = {
             }
           }
         },
+        BattleRequest: {
+          type: 'object',
+          required: ['character1Id', 'character2Id'],
+          properties: {
+            character1Id: {
+              type: 'string',
+              description: 'ID of the first character',
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            },
+            character2Id: {
+              type: 'string',
+              description: 'ID of the second character',
+              example: '987f6543-e21c-34b5-a789-123456789012'
+            }
+          }
+        },
+        BattleParticipant: {
+          type: 'object',
+          properties: {
+            character: {
+              $ref: '#/components/schemas/Character'
+            },
+            currentHealthPoints: {
+              type: 'number',
+              description: 'Current health points during battle',
+              example: 15
+            }
+          }
+        },
+        BattleTurn: {
+          type: 'object',
+          properties: {
+            attacker: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            defender: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            damage: {
+              type: 'number',
+              description: 'Damage dealt in this turn',
+              example: 8
+            },
+            defenderRemainingHP: {
+              type: 'number',
+              description: 'Defender health points after taking damage',
+              example: 12
+            }
+          }
+        },
+        BattleRound: {
+          type: 'object',
+          properties: {
+            roundNumber: {
+              type: 'number',
+              description: 'Round number in the battle',
+              example: 1
+            },
+            firstPlayer: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            secondPlayer: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            firstPlayerSpeed: {
+              type: 'number',
+              description: 'Speed roll of the first player',
+              example: 7
+            },
+            secondPlayerSpeed: {
+              type: 'number',
+              description: 'Speed roll of the second player',
+              example: 3
+            },
+            turns: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/BattleTurn'
+              },
+              description: 'All turns in this round'
+            },
+            roundEnded: {
+              type: 'boolean',
+              description: 'Whether the round ended',
+              example: true
+            }
+          }
+        },
+        BattleResult: {
+          type: 'object',
+          properties: {
+            winner: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            loser: {
+              $ref: '#/components/schemas/BattleParticipant'
+            },
+            rounds: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/BattleRound'
+              },
+              description: 'All rounds in the battle'
+            },
+            battleLog: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Detailed battle log messages',
+              example: [
+                "Battle between Hero (Warrior) - 20 HP and Mage (Mage) - 12 HP begins!",
+                "Hero 5 speed was faster than Mage 3 speed and will begin this round.",
+                "Hero attacks Mage for 8, Mage has 4 HP remaining.",
+                "Mage attacks Hero for 6, Hero has 14 HP remaining.",
+                "Hero 7 speed was faster than Mage 2 speed and will begin this round.",
+                "Hero attacks Mage for 4, Mage has 0 HP remaining.",
+                "Hero wins the battle! Hero still has 14 HP remaining!"
+              ]
+            },
+            totalRounds: {
+              type: 'number',
+              description: 'Total number of rounds in the battle',
+              example: 2
+            }
+          }
+        },
         Error: {
           type: 'object',
           properties: {

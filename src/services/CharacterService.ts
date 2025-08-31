@@ -77,6 +77,16 @@ class CharacterService {
     }
     return undefined;
   }
+
+  updateCharacterHealth(id: string, currentHealthPoints: number): Character | undefined {
+    const character = this.characters.get(id);
+    if (character) {
+      character.currentHealthPoints = Math.max(0, Math.min(currentHealthPoints, character.maxHealthPoints));
+      this.characters.set(id, character);
+      return character;
+    }
+    return undefined;
+  }
 }
 
 export default new CharacterService();
