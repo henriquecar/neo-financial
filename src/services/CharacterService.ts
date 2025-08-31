@@ -34,6 +34,16 @@ class CharacterService {
   deleteCharacter(id: string): boolean {
     return this.characters.delete(id);
   }
+
+  updateCharacterStatus(id: string, status: 'Alive' | 'Dead'): Character | undefined {
+    const character = this.characters.get(id);
+    if (character) {
+      character.status = status;
+      this.characters.set(id, character);
+      return character;
+    }
+    return undefined;
+  }
 }
 
 export default new CharacterService();

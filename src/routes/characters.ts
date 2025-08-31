@@ -15,6 +15,22 @@ router.get('/', (req, res) => {
   }
 });
 
+router.get('/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const character = characterService.getCharacterById(id);
+    
+    if (!character) {
+      return res.status(404).json({ error: 'Character not found' });
+    }
+    
+    res.json(character);
+  } catch (error) {
+    console.error('Error fetching character:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.post('/', (req, res) => {
   try {
     const { name, job } = req.body;
