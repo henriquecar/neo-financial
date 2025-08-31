@@ -186,6 +186,38 @@ curl -X POST http://localhost:3000/api/characters \
 
 For detailed request/response schemas, validation rules, and interactive testing, visit the Swagger documentation at `/api-docs`.
 
+## Assessment Implementation Details
+
+This implementation includes several enhancements and design decisions made during development:
+
+### Additional Features Implemented
+- **Added GET /jobs endpoint** - Allows users to view available job options when creating a character, providing transparency about job stats and modifiers
+- **Added pagination strategy** - Implemented comprehensive pagination for GET /characters endpoint to handle scalability concerns
+- **Added Swagger/OpenAPI documentation** - Complete interactive API documentation accessible at `/api-docs` for better developer experience
+- **Enhanced testing suite** - Added comprehensive tests for character listing and details endpoints to ensure reliability (beyond basic requirements)
+
+### API Design Optimizations
+- **Removed detailed stats from list endpoint** - The strength, dexterity, and intelligence fields aren't shown in UI, so they were removed from the character list endpoint for optimal performance
+- **Streamlined response formats** - Different endpoints serve different purposes with appropriate data structures
+
+### Character Endpoints Strategy
+| Endpoint             | Purpose     | Response Format                                    |
+|----------------------|-------------|----------------------------------------------------|
+| GET /characters      | List View   | Essential fields only: id, name, job, status       |
+| GET /characters/{id} | Detail View | Full details with battleModifiers: {attack, speed} |
+| POST /characters     | Creation    | Complete character data (internal format)          |
+
+### Architecture Decisions
+- **Character-level stat storage** - In this phase, properties like maxHealthPoints, strength, dexterity, intelligence, attackModifier, and speedModifier are unique per job (not per character). However, they are stored at the character level to support planned future features:
+  - **Job changing system** - Characters will be able to switch jobs
+  - **Stat growth mechanics** - Individual character progression and customization
+  - **Battle system integration** - Health tracking and battle outcomes
+
+### Battle System Implementation
+- **Complete battle mechanics** - Round-based combat with speed determination and damage calculation
+- **Health persistence** - Character health and status are updated after battles
+- **Comprehensive battle logging** - Detailed battle narratives with proper formatting
+
 ## Assignment Requirements
 
 This project fulfills the Neo Financial coding assignment requirements:
@@ -195,6 +227,8 @@ This project fulfills the Neo Financial coding assignment requirements:
 - ✅ Unit test coverage
 - ✅ Clear documentation
 - ✅ TypeScript implementation
+- ✅ Battle system with complete mechanics
+- ✅ Character health and status management
 
 ## Development Notes
 
@@ -202,3 +236,4 @@ This project fulfills the Neo Financial coding assignment requirements:
 - Focus on code quality and maintainability
 - Comprehensive test coverage for business logic
 - Clear API documentation with examples
+- Extensible architecture for future feature development
