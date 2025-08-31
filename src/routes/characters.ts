@@ -1,6 +1,7 @@
 import express from 'express';
 import characterService from '../services/CharacterService';
 import { validateCharacterCreation } from '../utils/validation';
+import { parsePaginationParams } from '../utils/pagination';
 import { JobType } from '../models/Character';
 
 const router = express.Router();
@@ -9,18 +10,38 @@ const router = express.Router();
  * @swagger
  * /characters:
  *   get:
- *     summary: Get all characters
- *     description: Retrieve a list of all characters with their name, job, and status (alive/dead)
+ *     summary: Get characters with pagination
+ *     description: Retrieve a paginated list of characters with their name, job, and status (alive/dead)
  *     tags: [Characters]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number (starts from 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of characters per page (max 100)
  *     responses:
  *       200:
- *         description: List of all characters
+ *         description: Paginated list of characters
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Character'
+ *               $ref: '#/components/schemas/PaginatedCharacters'
+ *       400:
+ *         description: Invalid pagination parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Internal server error
  *         content:
@@ -30,8 +51,9 @@ const router = express.Router();
  */
 router.get('/', (req, res) => {
   try {
-    const characters = characterService.getAllCharacters();
-    res.json(characters);
+    const paginationQuery = parsePaginationParams(req.query);
+    const result = characterService.getCharactersPaginated(paginationQuery);
+    res.json(result);
   } catch (error) {
     console.error('Error fetching characters:', error);
     res.status(500).json({ error: 'Internal server error' });

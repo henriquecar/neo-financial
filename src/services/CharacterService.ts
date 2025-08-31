@@ -1,4 +1,5 @@
 import { Character, JobType, JOB_BASE_STATS, calculateAttackModifier, calculateSpeedModifier } from '../models/Character';
+import { PaginationResult, PaginationQuery } from '../types/pagination';
 import { v4 as uuidv4 } from 'uuid';
 
 class CharacterService {
@@ -6,6 +7,29 @@ class CharacterService {
 
   getAllCharacters(): Character[] {
     return Array.from(this.characters.values());
+  }
+
+  getCharactersPaginated(paginationQuery: PaginationQuery): PaginationResult<Character> {
+    const allCharacters = Array.from(this.characters.values());
+    const totalItems = allCharacters.length;
+    const totalPages = Math.ceil(totalItems / paginationQuery.limit);
+    
+    // Extract the requested page of characters
+    const startIndex = paginationQuery.offset;
+    const endIndex = startIndex + paginationQuery.limit;
+    const data = allCharacters.slice(startIndex, endIndex);
+
+    return {
+      data,
+      pagination: {
+        currentPage: paginationQuery.page,
+        totalPages,
+        totalItems,
+        itemsPerPage: paginationQuery.limit,
+        hasNextPage: paginationQuery.page < totalPages,
+        hasPreviousPage: paginationQuery.page > 1
+      }
+    };
   }
 
   getCharacterById(id: string): Character | undefined {

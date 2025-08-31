@@ -124,11 +124,58 @@ The API is fully documented using Swagger/OpenAPI. Once the server is running, y
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/characters` | GET | Get all characters with name, job, and status |
+| `/api/characters` | GET | Get paginated list of characters with name, job, and status |
 | `/api/characters` | POST | Create a new character |
 | `/api/characters/:id` | GET | Get character details by ID |
 | `/api/jobs` | GET | Get all available jobs with stats and formulas |
 | `/api/health` | GET | Health check endpoint |
+
+### Character Listing with Pagination
+
+The characters endpoint supports pagination to efficiently handle large numbers of characters:
+
+**Query Parameters:**
+- `page` (optional): Page number, defaults to 1
+- `limit` (optional): Items per page (1-100), defaults to 10
+
+```bash
+# Get first page (default: 10 characters)
+curl http://localhost:3000/api/characters
+
+# Get specific page with custom limit
+curl "http://localhost:3000/api/characters?page=2&limit=5"
+
+# Get maximum characters per page
+curl "http://localhost:3000/api/characters?limit=100"
+```
+
+**Response format:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Character_Name",
+      "job": "Warrior",
+      "status": "Alive",
+      "healthPoints": 20,
+      "strength": 10,
+      "dexterity": 5,
+      "intelligence": 5,
+      "attackModifier": 9,
+      "speedModifier": 4
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 5,
+    "totalItems": 42,
+    "itemsPerPage": 10,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
 
 ### Character Creation Example
 
@@ -139,12 +186,6 @@ curl -X POST http://localhost:3000/api/characters \
     "name": "Hero_Knight",
     "job": "Warrior"
   }'
-```
-
-### Get All Characters Example
-
-```bash
-curl http://localhost:3000/api/characters
 ```
 
 For detailed request/response schemas, validation rules, and interactive testing, visit the Swagger documentation at `/api-docs`.

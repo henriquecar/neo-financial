@@ -20,7 +20,10 @@ describe('Character Listing API', () => {
         .get('/api/characters')
         .expect(200);
 
-      expect(response.body).toEqual([]);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.data).toEqual([]);
+      expect(response.body.pagination.totalItems).toBe(0);
     });
 
     it('should return all characters with name, job, and status for list view', async () => {
@@ -33,10 +36,12 @@ describe('Character Listing API', () => {
         .get('/api/characters')
         .expect(200);
 
-      expect(response.body).toHaveLength(3);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('pagination');
+      expect(response.body.data).toHaveLength(3);
       
       // Verify it contains all required fields for the list view
-      response.body.forEach((character: any) => {
+      response.body.data.forEach((character: any) => {
         expect(character).toHaveProperty('id');
         expect(character).toHaveProperty('name');
         expect(character).toHaveProperty('job');
@@ -45,7 +50,7 @@ describe('Character Listing API', () => {
       });
 
       // Verify specific characters are present
-      const characterNames = response.body.map((char: any) => char.name);
+      const characterNames = response.body.data.map((char: any) => char.name);
       expect(characterNames).toContain('Chamness');
       expect(characterNames).toContain('Aetherius');
       expect(characterNames).toContain('Mera');
@@ -72,10 +77,10 @@ describe('Character Listing API', () => {
         .get('/api/characters')
         .expect(200);
 
-      expect(response.body).toHaveLength(8);
+      expect(response.body.data).toHaveLength(8);
 
       // Verify each character has the required structure for the list view
-      response.body.forEach((character: any) => {
+      response.body.data.forEach((character: any) => {
         expect(character).toMatchObject({
           id: expect.any(String),
           name: expect.any(String),
@@ -147,7 +152,7 @@ describe('Character Listing API', () => {
         .get('/api/characters')
         .expect(200);
 
-      expect(response.body).toHaveLength(3);
+      expect(response.body.data).toHaveLength(3);
 
       // Verify the response structure matches what the UI needs
       const expectedFields = [
@@ -163,7 +168,7 @@ describe('Character Listing API', () => {
         'speedModifier'   // For details view
       ];
 
-      response.body.forEach((character: any) => {
+      response.body.data.forEach((character: any) => {
         expectedFields.forEach(field => {
           expect(character).toHaveProperty(field);
         });
@@ -187,19 +192,19 @@ describe('Character Listing API', () => {
         .get('/api/characters')
         .expect(200);
 
-      expect(response.body).toHaveLength(5);
+      expect(response.body.data).toHaveLength(5);
 
       // Verify we have both Alive and Dead characters
-      const aliveCharacters = response.body.filter((char: any) => char.status === 'Alive');
-      const deadCharacters = response.body.filter((char: any) => char.status === 'Dead');
+      const aliveCharacters = response.body.data.filter((char: any) => char.status === 'Alive');
+      const deadCharacters = response.body.data.filter((char: any) => char.status === 'Dead');
 
       expect(aliveCharacters).toHaveLength(2); // Chamness, Mera
       expect(deadCharacters).toHaveLength(3);  // Aetherius, Vyncent, Thatetch
 
       // Verify specific characters and their statuses match the screenshot pattern
-      const champnessChar = response.body.find((char: any) => char.name === 'Chamness');
-      const aetheriusChar = response.body.find((char: any) => char.name === 'Aetherius');
-      const vyncentChar = response.body.find((char: any) => char.name === 'Vyncent');
+      const champnessChar = response.body.data.find((char: any) => char.name === 'Chamness');
+      const aetheriusChar = response.body.data.find((char: any) => char.name === 'Aetherius');
+      const vyncentChar = response.body.data.find((char: any) => char.name === 'Vyncent');
 
       expect(champnessChar.status).toBe('Alive');
       expect(aetheriusChar.status).toBe('Dead');

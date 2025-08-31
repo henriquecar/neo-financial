@@ -155,6 +155,56 @@ const options = {
             }
           }
         },
+        PaginatedCharacters: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/Character'
+              },
+              description: 'Array of characters for the current page'
+            },
+            pagination: {
+              $ref: '#/components/schemas/PaginationInfo'
+            }
+          }
+        },
+        PaginationInfo: {
+          type: 'object',
+          properties: {
+            currentPage: {
+              type: 'number',
+              description: 'Current page number',
+              example: 1
+            },
+            totalPages: {
+              type: 'number',
+              description: 'Total number of pages',
+              example: 5
+            },
+            totalItems: {
+              type: 'number',
+              description: 'Total number of items',
+              example: 42
+            },
+            itemsPerPage: {
+              type: 'number',
+              description: 'Number of items per page',
+              example: 10
+            },
+            hasNextPage: {
+              type: 'boolean',
+              description: 'Whether there is a next page',
+              example: true
+            },
+            hasPreviousPage: {
+              type: 'boolean',
+              description: 'Whether there is a previous page',
+              example: false
+            }
+          }
+        },
         Error: {
           type: 'object',
           properties: {
