@@ -83,6 +83,17 @@ app.use('/api/*', (req, res) => {
 
 const PORT = ConfigService.PORT;
 
+// Validate configuration at startup
+try {
+  ConfigService.validateConfig();
+  logger.info('Configuration validation passed');
+} catch (error) {
+  logger.error('Configuration validation failed', { 
+    error: error instanceof Error ? error.message : String(error) 
+  });
+  process.exit(1);
+}
+
 const server = app.listen(PORT, () => {
   logger.info('Server started successfully', {
     port: PORT,

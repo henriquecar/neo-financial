@@ -30,8 +30,8 @@ export function errorHandler(error: Error, req: Request, res: Response, next: Ne
     message = error.message;
   }
 
-  // Log error for debugging (but not in production)
-  if (process.env.NODE_ENV !== 'production') {
+  // Log error for debugging (but not in production or test)
+  if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     console.error(`[${timestamp}] ${error.name}: ${error.message}`);
     if (error.stack) {
       console.error(error.stack);

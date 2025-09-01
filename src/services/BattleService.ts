@@ -4,13 +4,13 @@ import { BattleTimeoutError } from '../errors/CustomErrors';
 import { ConfigService } from '../config/config';
 import { ICharacterService } from './interfaces/ICharacterService';
 import { IBattleService } from './interfaces/IBattleService';
+import { RandomNumberGenerator, defaultRNG } from '../utils/random';
 
 class BattleService implements IBattleService {
-  constructor(private characterService: ICharacterService) {}
-  
-  private generateRandomInt(max: number): number {
-    return Math.floor(Math.random() * (max + 1));
-  }
+  constructor(
+    private characterService: ICharacterService,
+    private rng: RandomNumberGenerator = defaultRNG
+  ) {}
 
   private createBattleParticipant(character: Character): BattleParticipant {
     return {
@@ -30,8 +30,8 @@ class BattleService implements IBattleService {
     
     // Keep rolling until there's no draw
     do {
-      firstSpeed = this.generateRandomInt(participant1.character.speedModifier);
-      secondSpeed = this.generateRandomInt(participant2.character.speedModifier);
+      firstSpeed = this.rng.generateRandomInt(participant1.character.speedModifier);
+      secondSpeed = this.rng.generateRandomInt(participant2.character.speedModifier);
     } while (firstSpeed === secondSpeed);
 
     if (firstSpeed > secondSpeed) {
@@ -42,7 +42,7 @@ class BattleService implements IBattleService {
   }
 
   private executeAttack(attacker: BattleParticipant, defender: BattleParticipant): BattleTurn {
-    const damage = this.generateRandomInt(attacker.character.attackModifier);
+    const damage = this.rng.generateRandomInt(attacker.character.attackModifier);
     defender.currentHealthPoints = Math.max(0, defender.currentHealthPoints - damage);
     
     return {
