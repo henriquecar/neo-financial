@@ -26,63 +26,63 @@ describe('Pagination', () => {
   describe('parsePaginationParams utility', () => {
     it('should return default values for empty query', () => {
       const result = parsePaginationParams({});
-      
+
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        offset: 0
+        offset: 0,
       });
     });
 
     it('should parse valid pagination parameters', () => {
       const result = parsePaginationParams({
         page: '3',
-        limit: '20'
+        limit: '20',
       });
-      
+
       expect(result).toEqual({
         page: 3,
         limit: 20,
-        offset: 40 // (3-1) * 20
+        offset: 40, // (3-1) * 20
       });
     });
 
     it('should handle invalid page numbers', () => {
       const result = parsePaginationParams({
         page: '0',
-        limit: '5'
+        limit: '5',
       });
-      
+
       expect(result).toEqual({
         page: 1, // Should default to 1
         limit: 5,
-        offset: 0
+        offset: 0,
       });
     });
 
     it('should enforce maximum limit', () => {
       const result = parsePaginationParams({
         page: '1',
-        limit: '200' // Over the max limit of 100
+        limit: '200', // Over the max limit of 100
       });
-      
+
       expect(result).toEqual({
         page: 1,
         limit: 100, // Should be capped at 100
-        offset: 0
+        offset: 0,
       });
     });
 
     it('should handle non-numeric values', () => {
       const result = parsePaginationParams({
         page: 'invalid',
-        limit: 'also-invalid'
+        limit: 'also-invalid',
       });
-      
+
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        offset: 0
+        offset: 0,
       });
     });
   });
@@ -93,34 +93,55 @@ describe('Pagination', () => {
       // Using names that only contain letters and underscores (no numbers)
       // Keep names under 15 characters to pass validation
       // Add unique identifier to avoid name collisions across tests
-      const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 3) || 'tst';
+      const testId =
+        Math.random()
+          .toString(36)
+          .replace(/[^a-z]/g, '')
+          .substr(0, 3) || 'tst';
       const names = [
-        `A_${testId}`, `B_${testId}`, `C_${testId}`, `D_${testId}`, `E_${testId}`, `F_${testId}`, `G_${testId}`, `H_${testId}`, `I_${testId}`, `J_${testId}`,
-        `K_${testId}`, `L_${testId}`, `M_${testId}`, `N_${testId}`, `O_${testId}`, `P_${testId}`, `Q_${testId}`, `R_${testId}`, `S_${testId}`, `T_${testId}`,
-        `U_${testId}`, `V_${testId}`, `W_${testId}`, `X_${testId}`, `Y_${testId}`
+        `A_${testId}`,
+        `B_${testId}`,
+        `C_${testId}`,
+        `D_${testId}`,
+        `E_${testId}`,
+        `F_${testId}`,
+        `G_${testId}`,
+        `H_${testId}`,
+        `I_${testId}`,
+        `J_${testId}`,
+        `K_${testId}`,
+        `L_${testId}`,
+        `M_${testId}`,
+        `N_${testId}`,
+        `O_${testId}`,
+        `P_${testId}`,
+        `Q_${testId}`,
+        `R_${testId}`,
+        `S_${testId}`,
+        `T_${testId}`,
+        `U_${testId}`,
+        `V_${testId}`,
+        `W_${testId}`,
+        `X_${testId}`,
+        `Y_${testId}`,
       ];
-      
+
       for (let i = 0; i < 25; i++) {
         const job = i % 3 === 0 ? 'Warrior' : i % 3 === 1 ? 'Thief' : 'Mage';
         const characterName = names[i];
-        
-        await request(app)
-          .post('/api/characters')
-          .send({ name: characterName, job })
-          .expect(201);
+
+        await request(app).post('/api/characters').send({ name: characterName, job }).expect(201);
       }
     });
 
     it('should return paginated results with default parameters', async () => {
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('pagination');
-      
+
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(10); // Default limit
       expect(pagination).toEqual({
         currentPage: 1,
@@ -128,17 +149,15 @@ describe('Pagination', () => {
         totalItems: 25,
         itemsPerPage: 10,
         hasNextPage: true,
-        hasPreviousPage: false
+        hasPreviousPage: false,
       });
     });
 
     it('should return specific page with custom limit', async () => {
-      const response = await request(app)
-        .get('/api/characters?page=2&limit=8')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=2&limit=8').expect(200);
 
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(8);
       expect(pagination).toEqual({
         currentPage: 2,
@@ -146,17 +165,15 @@ describe('Pagination', () => {
         totalItems: 25,
         itemsPerPage: 8,
         hasNextPage: true,
-        hasPreviousPage: true
+        hasPreviousPage: true,
       });
     });
 
     it('should handle last page correctly', async () => {
-      const response = await request(app)
-        .get('/api/characters?page=3&limit=10')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=3&limit=10').expect(200);
 
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(5); // Only 5 characters left on last page
       expect(pagination).toEqual({
         currentPage: 3,
@@ -164,17 +181,15 @@ describe('Pagination', () => {
         totalItems: 25,
         itemsPerPage: 10,
         hasNextPage: false,
-        hasPreviousPage: true
+        hasPreviousPage: true,
       });
     });
 
     it('should return empty data for page beyond total pages', async () => {
-      const response = await request(app)
-        .get('/api/characters?page=10&limit=10')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=10&limit=10').expect(200);
 
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(0);
       expect(pagination).toEqual({
         currentPage: 10,
@@ -182,17 +197,15 @@ describe('Pagination', () => {
         totalItems: 25,
         itemsPerPage: 10,
         hasNextPage: false,
-        hasPreviousPage: true
+        hasPreviousPage: true,
       });
     });
 
     it('should handle single character per page', async () => {
-      const response = await request(app)
-        .get('/api/characters?page=5&limit=1')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=5&limit=1').expect(200);
 
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(1);
       expect(pagination).toEqual({
         currentPage: 5,
@@ -200,7 +213,7 @@ describe('Pagination', () => {
         totalItems: 25,
         itemsPerPage: 1,
         hasNextPage: true,
-        hasPreviousPage: true
+        hasPreviousPage: true,
       });
     });
 
@@ -210,12 +223,10 @@ describe('Pagination', () => {
       const characterRepository = container.getCharacterRepository() as InMemoryCharacterRepository;
       characterRepository.clear();
 
-      const response = await request(app)
-        .get('/api/characters?page=1&limit=10')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=1&limit=10').expect(200);
 
       const { data, pagination } = response.body;
-      
+
       expect(data).toHaveLength(0);
       expect(pagination).toEqual({
         currentPage: 1,
@@ -223,7 +234,7 @@ describe('Pagination', () => {
         totalItems: 0,
         itemsPerPage: 10,
         hasNextPage: false,
-        hasPreviousPage: false
+        hasPreviousPage: false,
       });
     });
 
@@ -233,7 +244,7 @@ describe('Pagination', () => {
         .expect(200);
 
       const { pagination } = response.body;
-      
+
       expect(pagination.itemsPerPage).toBe(100); // Should be capped at 100
     });
 
@@ -243,7 +254,7 @@ describe('Pagination', () => {
         .expect(200);
 
       const { data, pagination } = response.body;
-      
+
       // Should use defaults
       expect(data).toHaveLength(10);
       expect(pagination.currentPage).toBe(1);
@@ -251,21 +262,19 @@ describe('Pagination', () => {
     });
 
     it('should maintain lightweight character data structure in paginated response', async () => {
-      const response = await request(app)
-        .get('/api/characters?page=1&limit=5')
-        .expect(200);
+      const response = await request(app).get('/api/characters?page=1&limit=5').expect(200);
 
       const { data } = response.body;
-      
+
       expect(data).toHaveLength(5);
-      
+
       // Verify each character has only the essential fields
       data.forEach((character: any) => {
         expect(character).toHaveProperty('id');
         expect(character).toHaveProperty('name');
         expect(character).toHaveProperty('job');
         expect(character).toHaveProperty('status');
-        
+
         // Verify it does NOT have detailed stats (those are in individual character endpoint)
         expect(character).not.toHaveProperty('maxHealthPoints');
         expect(character).not.toHaveProperty('strength');
@@ -273,7 +282,7 @@ describe('Pagination', () => {
         expect(character).not.toHaveProperty('intelligence');
         expect(character).not.toHaveProperty('attackModifier');
         expect(character).not.toHaveProperty('speedModifier');
-        
+
         // Verify it has exactly 4 fields
         expect(Object.keys(character)).toEqual(['id', 'name', 'job', 'status']);
       });

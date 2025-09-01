@@ -1,0 +1,170 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: |
+        echo "Running npm security audit..."
+        npm audit --audit-level high
+        
+    - name: Check for known vulnerabilities
+      run: |
+        echo "Checking for known security vulnerabilities..."
+        npm audit --audit-level moderate --json > audit-results.json || true
+        cat audit-results.json
+        
+    - name: Generate security report
+      run: |
+        echo "Security Scan Summary"
+        echo "========================"
+        if [ -f audit-results.json ]; then
+          vulnerabilities=$(cat audit-results.json | jq -r '.metadata.vulnerabilities | to_entries[] | "\(.key): \(.value)"' || echo "No vulnerabilities data")
+          echo "Vulnerability Summary:"
+          echo "$vulnerabilities"
+        else
+          echo "No audit results file generated"
+        fi
+        
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+      
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: high
+        
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for better secret detection
+      
+    - name: Install TruffleHog
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+        
+    - name: Run TruffleHog scan
+      run: |
+        echo "Scanning for secrets..."
+        trufflehog git file://. --only-verified --fail || {
+          echo "TruffleHog scan completed with findings or errors"
+          trufflehog git file://. --only-verified || echo "Scan completed - check results above"
+        }
+        
+    - name: Alternative secret patterns check
+      run: |
+        echo "Running additional secret pattern checks..."
+        echo "Checking for common secret patterns..."
+        
+        # Check for common API key patterns (case-insensitive)
+        if grep -r -i -E "(api[_-]?key|secret[_-]?key|access[_-]?token)" --include="*.ts" --include="*.js" --include="*.json" --exclude-dir=node_modules . | grep -v "test" | grep -v "spec"; then
+          echo "Found potential API key references in code"
+        else
+          echo "No obvious API key patterns found in source code"
+        fi
+        
+        # Check for hardcoded credentials patterns
+        if grep -r -E "(password|passwd|pwd)\s*[:=]\s*['\"][^'\"]{3,}" --include="*.ts" --include="*.js" --exclude-dir=node_modules . | grep -v "test" | grep -v "spec"; then
+          echo "Found potential hardcoded password patterns"
+        else
+          echo "No hardcoded password patterns found"
+        fi
+        
+        # Check for private keys
+        if grep -r "BEGIN.*PRIVATE KEY" --include="*.pem" --include="*.key" --include="*.ts" --include="*.js" --exclude-dir=node_modules . ; then
+          echo "Found private key content in files"
+          exit 1
+        else
+          echo "No private keys found in files"
+        fi
+        
+  docker-security:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Build Docker image for scanning
+      run: docker build -t neo-financial:security-scan .
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'neo-financial:security-scan'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

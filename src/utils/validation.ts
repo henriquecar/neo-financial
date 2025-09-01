@@ -49,6 +49,6 @@ export function validateCharacterCreation(name: string, job: string): Validation
 
   return {
     isValid: allErrors.length === 0,
-    errors: allErrors
+    errors: allErrors,
   };
 }

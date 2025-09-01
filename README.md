@@ -1,5 +1,10 @@
 # NEO RPG Character Management API
 
+[![CI/CD Pipeline](https://github.com/your-username/neo-financial/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/neo-financial/actions/workflows/ci.yml)
+[![Code Quality](https://github.com/your-username/neo-financial/actions/workflows/code-quality.yml/badge.svg)](https://github.com/your-username/neo-financial/actions/workflows/code-quality.yml)
+[![Security Scan](https://github.com/your-username/neo-financial/actions/workflows/security.yml/badge.svg)](https://github.com/your-username/neo-financial/actions/workflows/security.yml)
+[![Deploy](https://github.com/your-username/neo-financial/actions/workflows/deploy.yml/badge.svg)](https://github.com/your-username/neo-financial/actions/workflows/deploy.yml)
+
 A backend API for managing role-playing game characters, built as part of the Neo Financial coding assignment.
 
 ## Overview
@@ -229,6 +234,61 @@ This project fulfills the Neo Financial coding assignment requirements:
 - ✅ TypeScript implementation
 - ✅ Battle system with complete mechanics
 - ✅ Character health and status management
+
+## 🚀 CI/CD Pipeline
+
+This project includes a comprehensive GitHub Actions workflow for automated testing, security scanning, and deployment.
+
+### Workflows
+
+#### 🧪 **CI/CD Pipeline** (`.github/workflows/ci.yml`)
+- **Multi-version testing**: Node.js 18.x, 20.x, 22.x
+- **Build verification**: TypeScript compilation and build process
+- **Test execution**: Complete test suite with coverage reporting
+- **Docker builds**: Container image testing and validation
+- **Performance checks**: Basic API response time validation
+
+#### 📊 **Code Quality** (`.github/workflows/code-quality.yml`)
+- **Linting**: Code style and formatting validation
+- **Type checking**: TypeScript type safety verification
+- **Dependency analysis**: Bundle size and dependency health
+- **Code metrics**: Complexity analysis and statistics
+
+#### 🔒 **Security Scanning** (`.github/workflows/security.yml`)
+- **Vulnerability scanning**: NPM audit and dependency review
+- **Code analysis**: CodeQL static analysis for security issues
+- **Secret detection**: TruffleHog for exposed credentials
+- **Container security**: Docker image vulnerability scanning
+- **Scheduled scans**: Weekly automated security audits
+
+#### 🔍 **PR Validation** (`.github/workflows/pr-validation.yml`)
+- **Change analysis**: Impact assessment and file diff analysis
+- **Bundle size tracking**: Performance impact measurement
+- **Breaking change detection**: API and model change validation
+- **PR quality checks**: Title conventions and size validation
+
+#### 🌍 **Deployment** (`.github/workflows/deploy.yml`)
+- **Staging deployment**: Automatic deployment from `main` branch
+- **Production deployment**: Tag-based releases with manual approval
+- **Container registry**: GitHub Container Registry integration
+- **Release automation**: Automatic GitHub releases for tagged versions
+
+### Running Workflows Locally
+
+```bash
+# Run the same checks that CI runs
+npm run typecheck    # Type checking
+npm run build       # Build verification  
+npm test            # Test execution
+npm run lint        # Code quality
+npm audit           # Security audit
+```
+
+### Deployment Environments
+
+- **Staging**: Auto-deployed from `main` branch
+- **Production**: Deployed from version tags (`v*`)
+- **Manual deployment**: Available via GitHub Actions workflow dispatch
 
 ## Development Notes
 

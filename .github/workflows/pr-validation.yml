@@ -1,0 +1,210 @@
+name: 🔍 PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ main, develop ]
+
+jobs:
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: PR Analysis
+      run: |
+        echo "Pull Request Analysis"
+        echo "======================="
+        echo "PR Title: ${{ github.event.pull_request.title }}"
+        echo "Author: ${{ github.event.pull_request.user.login }}"
+        echo "Source Branch: ${{ github.event.pull_request.head.ref }}"
+        echo "Target Branch: ${{ github.event.pull_request.base.ref }}"
+        echo "Files Changed:"
+        git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+        echo "Lines Changed:"
+        git diff --stat ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+        
+  validate-changes:
+    name: Validate Changes
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check for breaking changes
+      run: |
+        echo "Checking for potential breaking changes..."
+        changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+        
+        echo "Changed files:"
+        echo "$changed_files"
+        
+        # Check if package.json was modified
+        if echo "$changed_files" | grep -q "package.json"; then
+          echo "package.json was modified"
+          git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} package.json
+        fi
+        
+        # Check if API routes were modified
+        if echo "$changed_files" | grep -q "src/routes/"; then
+          echo "API routes were modified"
+          echo "$changed_files" | grep "src/routes/" || true
+        fi
+        
+        # Check if database models were modified
+        if echo "$changed_files" | grep -q "src/models/"; then
+          echo "Data models were modified"
+          echo "$changed_files" | grep "src/models/" || true
+        fi
+        
+    - name: Run affected tests
+      run: |
+        echo "Running all tests to ensure no regressions..."
+        npm test
+      env:
+        NODE_ENV: test
+        
+    - name: Check test coverage impact
+      run: |
+        echo "Checking test coverage..."
+        npm run test:coverage
+        
+        # Check if coverage files exist
+        if [ -d "coverage" ]; then
+          echo "Coverage report generated"
+          if [ -f "coverage/lcov.info" ]; then
+            echo "LCOV report available"
+          fi
+        else
+          echo "No coverage directory found"
+        fi
+      env:
+        NODE_ENV: test
+        
+  size-impact:
+    name: Bundle Size Impact
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout base branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies (base)
+      run: npm ci
+      
+    - name: Build base
+      run: npm run build
+      
+    - name: Record base bundle size
+      run: |
+        base_size=$(du -sb dist | cut -f1)
+        echo "BASE_SIZE=$base_size" >> $GITHUB_ENV
+        echo "Base bundle size: $(du -sh dist)"
+        
+    - name: Checkout PR branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        clean: false
+        
+    - name: Install dependencies (PR)
+      run: npm ci
+      
+    - name: Build PR
+      run: |
+        rm -rf dist
+        npm run build
+        
+    - name: Compare bundle sizes
+      run: |
+        pr_size=$(du -sb dist | cut -f1)
+        echo "PR bundle size: $(du -sh dist)"
+        
+        size_diff=$((pr_size - BASE_SIZE))
+        size_diff_mb=$(echo "scale=2; $size_diff / 1024 / 1024" | bc -l)
+        
+        echo "Bundle Size Analysis"
+        echo "======================"
+        echo "Base Size: $(echo "scale=2; $BASE_SIZE / 1024 / 1024" | bc -l) MB"
+        echo "PR Size: $(echo "scale=2; $pr_size / 1024 / 1024" | bc -l) MB"
+        echo "Difference: ${size_diff_mb} MB"
+        
+        if [ $size_diff -gt 1048576 ]; then # 1MB
+          echo "Bundle size increased by more than 1MB"
+        elif [ $size_diff -gt 0 ]; then
+          echo "Bundle size increased by ${size_diff_mb} MB"
+        else
+          echo "Bundle size decreased or unchanged"
+        fi
+        
+  pr-checklist:
+    name: PR Checklist
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: PR Readiness Check
+      run: |
+        echo "Pull Request Readiness Checklist"
+        echo "==================================="
+        
+        # Check if PR has description
+        pr_body="${{ github.event.pull_request.body }}"
+        if [ -n "$pr_body" ]; then
+          echo "PR has description"
+        else
+          echo "PR missing description"
+        fi
+        
+        # Check if PR title follows convention
+        pr_title="${{ github.event.pull_request.title }}"
+        if [[ "$pr_title" =~ ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?:.+ ]]; then
+          echo "PR title follows conventional commit format"
+        else
+          echo "PR title doesn't follow conventional commit format (feat|fix|docs|style|refactor|test|chore: description)"
+        fi
+        
+        # Check if PR is not too large
+        files_changed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | wc -l)
+        if [ $files_changed -lt 20 ]; then
+          echo "PR size is reasonable ($files_changed files changed)"
+        else
+          echo "Large PR: $files_changed files changed (consider splitting)"
+        fi
+        
+        echo "PR Statistics"
+        echo "==============="
+        echo "Files changed: $files_changed"
+        echo "Additions: ${{ github.event.pull_request.additions }}"
+        echo "Deletions: ${{ github.event.pull_request.deletions }}"

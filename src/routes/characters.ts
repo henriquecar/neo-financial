@@ -5,7 +5,11 @@ import { JobType } from '../models/Character';
 import { asyncHandler } from '../utils/asyncHandler';
 import { NotFoundError } from '../errors/CustomErrors';
 import { validateBody, validateQuery, validateParams } from '../middleware/validation';
-import { createCharacterSchema, paginationSchema, characterIdParamsSchema } from '../schemas/characterSchemas';
+import {
+  createCharacterSchema,
+  paginationSchema,
+  characterIdParamsSchema,
+} from '../schemas/characterSchemas';
 
 const router = express.Router();
 
@@ -52,16 +56,19 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', asyncHandler(async (req, res) => {
-  // Parse pagination parameters from query string
-  const { parsePaginationParams } = await import('../utils/pagination');
-  const paginationQuery = parsePaginationParams(req.query);
-  
-  const container = ServiceContainer.getInstance();
-  const characterService = container.getCharacterService();
-  const result = await characterService.getCharactersPaginated(paginationQuery);
-  res.json(result);
-}));
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    // Parse pagination parameters from query string
+    const { parsePaginationParams } = await import('../utils/pagination');
+    const paginationQuery = parsePaginationParams(req.query);
+
+    const container = ServiceContainer.getInstance();
+    const characterService = container.getCharacterService();
+    const result = await characterService.getCharactersPaginated(paginationQuery);
+    res.json(result);
+  })
+);
 
 /**
  * @swagger
@@ -97,20 +104,24 @@ router.get('/', asyncHandler(async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const container = ServiceContainer.getInstance();
-  const characterService = container.getCharacterService();
-  const character = await characterService.getCharacterById(id);
-  
-  if (!character) {
-    throw new NotFoundError('Character', id);
-  }
-  
-  // Transform to character detail format with battleModifiers
-  const characterDetail = mapToCharacterDetail(character);
-  res.json(characterDetail);
-}));
+router.get(
+  '/:id',
+  validateParams(characterIdParamsSchema),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const container = ServiceContainer.getInstance();
+    const characterService = container.getCharacterService();
+    const character = await characterService.getCharacterById(id);
+
+    if (!character) {
+      throw new NotFoundError('Character', id);
+    }
+
+    // Transform to character detail format with battleModifiers
+    const characterDetail = mapToCharacterDetail(character);
+    res.json(characterDetail);
+  })
+);
 
 /**
  * @swagger
@@ -132,7 +143,7 @@ router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (
  *                 name: "Hero_Knight"
  *                 job: "Warrior"
  *             thief:
- *               summary: Create a Thief  
+ *               summary: Create a Thief
  *               value:
  *                 name: "Shadow_Rogue"
  *                 job: "Thief"
@@ -161,12 +172,16 @@ router.get('/:id', validateParams(characterIdParamsSchema), asyncHandler(async (
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', validateBody(createCharacterSchema), asyncHandler(async (req, res) => {
-  const { name, job } = req.body;
-  const container = ServiceContainer.getInstance();
-  const characterService = container.getCharacterService();
-  const character = await characterService.createCharacter(name, job as JobType);
-  res.status(201).json(character);
-}));
+router.post(
+  '/',
+  validateBody(createCharacterSchema),
+  asyncHandler(async (req, res) => {
+    const { name, job } = req.body;
+    const container = ServiceContainer.getInstance();
+    const characterService = container.getCharacterService();
+    const character = await characterService.createCharacter(name, job as JobType);
+    res.status(201).json(character);
+  })
+);
 
 export default router;

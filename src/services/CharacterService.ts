@@ -1,4 +1,10 @@
-import { Character, JobType, JOB_BASE_STATS, calculateAttackModifier, calculateSpeedModifier } from '../models/Character';
+import {
+  Character,
+  JobType,
+  JOB_BASE_STATS,
+  calculateAttackModifier,
+  calculateSpeedModifier,
+} from '../models/Character';
 import { PaginationResult, PaginationQuery } from '../types/pagination';
 import { ICharacterRepository } from '../repositories/interfaces/ICharacterRepository';
 import { ICharacterService } from './interfaces/ICharacterService';
@@ -11,7 +17,9 @@ class CharacterService implements ICharacterService {
     return this.characterRepository.findAll();
   }
 
-  async getCharactersPaginated(paginationQuery: PaginationQuery): Promise<PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>>> {
+  async getCharactersPaginated(
+    paginationQuery: PaginationQuery
+  ): Promise<PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>>> {
     return this.characterRepository.findPaginated(paginationQuery);
   }
 
@@ -37,8 +45,18 @@ class CharacterService implements ICharacterService {
       strength: baseStats.strength,
       dexterity: baseStats.dexterity,
       intelligence: baseStats.intelligence,
-      attackModifier: calculateAttackModifier(job, baseStats.strength, baseStats.dexterity, baseStats.intelligence),
-      speedModifier: calculateSpeedModifier(job, baseStats.strength, baseStats.dexterity, baseStats.intelligence),
+      attackModifier: calculateAttackModifier(
+        job,
+        baseStats.strength,
+        baseStats.dexterity,
+        baseStats.intelligence
+      ),
+      speedModifier: calculateSpeedModifier(
+        job,
+        baseStats.strength,
+        baseStats.dexterity,
+        baseStats.intelligence
+      ),
     };
 
     return this.characterRepository.create(character);
@@ -48,11 +66,17 @@ class CharacterService implements ICharacterService {
     return this.characterRepository.delete(id);
   }
 
-  async updateCharacterStatus(id: string, status: 'Alive' | 'Dead'): Promise<Character | undefined> {
+  async updateCharacterStatus(
+    id: string,
+    status: 'Alive' | 'Dead'
+  ): Promise<Character | undefined> {
     return this.characterRepository.update(id, { status });
   }
 
-  async updateCharacterHealth(id: string, currentHealthPoints: number): Promise<Character | undefined> {
+  async updateCharacterHealth(
+    id: string,
+    currentHealthPoints: number
+  ): Promise<Character | undefined> {
     const character = await this.characterRepository.findById(id);
     if (character) {
       const clampedHealth = Math.max(0, Math.min(currentHealthPoints, character.maxHealthPoints));

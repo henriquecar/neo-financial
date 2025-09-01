@@ -5,28 +5,33 @@ import { Express } from 'express';
 
 export function configureSecurity(app: Express): void {
   // Basic security headers
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        },
       },
-    },
-  }));
+    })
+  );
 
   // CORS configuration
-  app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.ALLOWED_ORIGINS?.split(',') || []
-      : true, // Allow all origins in development
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true,
-  }));
+  app.use(
+    cors({
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? process.env.ALLOWED_ORIGINS?.split(',') || []
+          : true, // Allow all origins in development
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      credentials: true,
+    })
+  );
 
   // Rate limiting
   const limiter = rateLimit({
@@ -37,8 +42,8 @@ export function configureSecurity(app: Express): void {
         code: 'RATE_LIMIT_EXCEEDED',
         message: 'Too many requests from this IP, please try again later.',
         timestamp: new Date().toISOString(),
-        path: ''
-      }
+        path: '',
+      },
     },
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers

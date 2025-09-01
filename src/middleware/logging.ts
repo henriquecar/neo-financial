@@ -17,15 +17,16 @@ declare global {
 export function correlationIdMiddleware(req: Request, res: Response, next: NextFunction): void {
   req.correlationId = req.get('X-Correlation-ID') || uuidv4();
   req.startTime = Date.now();
-  
+
   // Add correlation ID to response headers
   res.setHeader('X-Correlation-ID', req.correlationId);
-  
+
   next();
 }
 
 // Custom morgan format with correlation ID
-const morganFormat = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms';
+const morganFormat =
+  ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms';
 
 // Request logging middleware using morgan
 export const requestLoggingMiddleware = morgan(morganFormat, {
@@ -33,15 +34,15 @@ export const requestLoggingMiddleware = morgan(morganFormat, {
     write: (message: string) => {
       // Remove the newline that morgan adds
       logger.info(message.trim(), { type: 'http-access' });
-    }
-  }
+    },
+  },
 });
 
 // Enhanced request/response logging middleware
 export function enhancedLoggingMiddleware(req: Request, res: Response, next: NextFunction): void {
   const { method, url, headers, body, query, params } = req;
   const correlationId = req.correlationId;
-  
+
   // Log incoming request
   logger.info('Incoming request', {
     correlationId,
@@ -53,16 +54,16 @@ export function enhancedLoggingMiddleware(req: Request, res: Response, next: Nex
     bodySize: (JSON.stringify(body) || '').length,
     hasQuery: Object.keys(query).length > 0,
     hasParams: Object.keys(params).length > 0,
-    ip: req.ip || req.socket.remoteAddress
+    ip: req.ip || req.socket.remoteAddress,
   });
 
   // Capture the original end function
   const originalEnd = res.end;
 
   // Override the end function to log response
-  res.end = function(chunk?: any, encoding?: any): any {
+  res.end = function (chunk?: any, encoding?: any): any {
     const duration = req.startTime ? Date.now() - req.startTime : 0;
-    
+
     // Log outgoing response
     logger.info('Outgoing response', {
       correlationId,
@@ -73,7 +74,7 @@ export function enhancedLoggingMiddleware(req: Request, res: Response, next: Nex
       statusMessage: res.statusMessage,
       duration,
       contentLength: res.getHeader('content-length') || (chunk ? chunk.length : 0),
-      contentType: res.getHeader('content-type')
+      contentType: res.getHeader('content-type'),
     });
 
     // Call the original end function
@@ -84,10 +85,15 @@ export function enhancedLoggingMiddleware(req: Request, res: Response, next: Nex
 }
 
 // Error logging middleware
-export function errorLoggingMiddleware(error: Error, req: Request, res: Response, next: NextFunction): void {
+export function errorLoggingMiddleware(
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   const { method, url } = req;
   const correlationId = req.correlationId;
-  
+
   logger.error('Request error', {
     correlationId,
     type: 'http-error',
@@ -96,9 +102,9 @@ export function errorLoggingMiddleware(error: Error, req: Request, res: Response
     error: {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     },
-    statusCode: res.statusCode
+    statusCode: res.statusCode,
   });
 
   next(error);

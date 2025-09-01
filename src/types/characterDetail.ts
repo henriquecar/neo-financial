@@ -25,7 +25,7 @@ export function mapToCharacterDetail(character: Character): CharacterDetail {
     currentHealthPoints: character.currentHealthPoints,
     battleModifiers: {
       attack: character.attackModifier,
-      speed: character.speedModifier
-    }
+      speed: character.speedModifier,
+    },
   };
 }

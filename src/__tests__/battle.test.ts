@@ -29,20 +29,24 @@ describe('Battle System', () => {
     characterRepository.clear();
 
     // Create test characters via API calls to ensure proper integration
-    const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 3) || 'tst';
-    
+    const testId =
+      Math.random()
+        .toString(36)
+        .replace(/[^a-z]/g, '')
+        .substr(0, 3) || 'tst';
+
     const warriorResponse = await request(app)
       .post('/api/characters')
       .send({ name: `War_${testId}`, job: 'Warrior' })
       .expect(201);
     warrior = warriorResponse.body;
-    
+
     const mageResponse = await request(app)
       .post('/api/characters')
       .send({ name: `Mag_${testId}`, job: 'Mage' })
       .expect(201);
     mage = mageResponse.body;
-    
+
     const thiefResponse = await request(app)
       .post('/api/characters')
       .send({ name: `Thi_${testId}`, job: 'Thief' })
@@ -65,8 +69,12 @@ describe('Battle System', () => {
       expect(result.loser.currentHealthPoints).toBe(0);
 
       // Battle log should have proper format
-      expect(result.battleLog[0]).toMatch(/^Battle between .+ \(.+\) - \d+ HP and .+ \(.+\) - \d+ HP begins!$/);
-      expect(result.battleLog[result.battleLog.length - 1]).toMatch(/^.+ wins the battle! .+ still has \d+ HP remaining!$/);
+      expect(result.battleLog[0]).toMatch(
+        /^Battle between .+ \(.+\) - \d+ HP and .+ \(.+\) - \d+ HP begins!$/
+      );
+      expect(result.battleLog[result.battleLog.length - 1]).toMatch(
+        /^.+ wins the battle! .+ still has \d+ HP remaining!$/
+      );
     });
 
     it('should generate proper battle log messages', () => {
@@ -82,23 +90,31 @@ describe('Battle System', () => {
       expect(lastMessage).toMatch(/^.+ wins the battle! .+ still has \d+ HP remaining!$/);
 
       // Check that speed announcements and attack messages are present
-      const speedMessages = result.battleLog.filter((msg: string) => msg.includes('speed was faster than'));
-      const attackMessages = result.battleLog.filter((msg: string) => msg.includes('attacks') && msg.includes('for'));
+      const speedMessages = result.battleLog.filter((msg: string) =>
+        msg.includes('speed was faster than')
+      );
+      const attackMessages = result.battleLog.filter(
+        (msg: string) => msg.includes('attacks') && msg.includes('for')
+      );
 
       expect(speedMessages.length).toBeGreaterThan(0);
       expect(attackMessages.length).toBeGreaterThan(0);
     });
 
     it('should handle multiple rounds if characters are balanced', async () => {
-      // Create two identical warriors for a potentially longer battle via API calls  
-      const testId = Math.random().toString(36).replace(/[^a-z]/g, '').substr(0, 2).padEnd(2, 'x');
-      
+      // Create two identical warriors for a potentially longer battle via API calls
+      const testId = Math.random()
+        .toString(36)
+        .replace(/[^a-z]/g, '')
+        .substr(0, 2)
+        .padEnd(2, 'x');
+
       const warrior1Response = await request(app)
         .post('/api/characters')
         .send({ name: `WarA${testId}`, job: 'Warrior' })
         .expect(201);
       const warrior1 = warrior1Response.body;
-      
+
       const warrior2Response = await request(app)
         .post('/api/characters')
         .send({ name: `WarB${testId}`, job: 'Warrior' })
@@ -123,13 +139,10 @@ describe('Battle System', () => {
     it('should start a battle between two valid characters', async () => {
       const battleRequest = {
         character1Id: warrior.id,
-        character2Id: mage.id
+        character2Id: mage.id,
       };
 
-      const response = await request(app)
-        .post('/api/battle')
-        .send(battleRequest)
-        .expect(200);
+      const response = await request(app).post('/api/battle').send(battleRequest).expect(200);
 
       expect(response.body).toHaveProperty('winner');
       expect(response.body).toHaveProperty('loser');
@@ -155,9 +168,9 @@ describe('Battle System', () => {
     it('should return 400 if characters are the same', async () => {
       const response = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: warrior.id, 
-          character2Id: warrior.id 
+        .send({
+          character1Id: warrior.id,
+          character2Id: warrior.id,
         })
         .expect(400);
 
@@ -167,9 +180,9 @@ describe('Battle System', () => {
     it('should return 400 if character is not found', async () => {
       const response = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: 'non-existent-id', 
-          character2Id: mage.id 
+        .send({
+          character1Id: 'non-existent-id',
+          character2Id: mage.id,
         })
         .expect(404);
 
@@ -182,9 +195,9 @@ describe('Battle System', () => {
 
       const response = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: warrior.id, 
-          character2Id: mage.id 
+        .send({
+          character1Id: warrior.id,
+          character2Id: mage.id,
         })
         .expect(409);
 
@@ -194,33 +207,29 @@ describe('Battle System', () => {
     it('should update loser status to Dead after battle', async () => {
       const battleRequest = {
         character1Id: warrior.id,
-        character2Id: mage.id
+        character2Id: mage.id,
       };
 
-      const response = await request(app)
-        .post('/api/battle')
-        .send(battleRequest)
-        .expect(200);
+      const response = await request(app).post('/api/battle').send(battleRequest).expect(200);
 
       // Check that loser is marked as Dead in the service
-      const loserCharacter = await characterService.getCharacterById(response.body.loser.character.id);
+      const loserCharacter = await characterService.getCharacterById(
+        response.body.loser.character.id
+      );
       expect(loserCharacter?.status).toBe('Dead');
     });
 
     it('should update both characters health after battle', async () => {
       const battleRequest = {
         character1Id: warrior.id,
-        character2Id: mage.id
+        character2Id: mage.id,
       };
 
       // Get initial health values
       const initialWarrior = await characterService.getCharacterById(warrior.id);
       const initialMage = await characterService.getCharacterById(mage.id);
 
-      const response = await request(app)
-        .post('/api/battle')
-        .send(battleRequest)
-        .expect(200);
+      const response = await request(app).post('/api/battle').send(battleRequest).expect(200);
 
       // Get updated characters from service
       const updatedWarrior = await characterService.getCharacterById(warrior.id);
@@ -229,14 +238,18 @@ describe('Battle System', () => {
       // Check that winner's health is updated
       const winnerId = response.body.winner.character.id;
       const winnerCurrentHP = response.body.winner.currentHealthPoints;
-      
+
       if (winnerId === warrior.id) {
         expect(updatedWarrior?.currentHealthPoints).toBe(winnerCurrentHP);
-        expect(updatedWarrior?.currentHealthPoints).toBeLessThanOrEqual(initialWarrior?.currentHealthPoints!);
+        expect(updatedWarrior?.currentHealthPoints).toBeLessThanOrEqual(
+          initialWarrior?.currentHealthPoints!
+        );
         expect(updatedMage?.currentHealthPoints).toBe(0);
       } else {
         expect(updatedMage?.currentHealthPoints).toBe(winnerCurrentHP);
-        expect(updatedMage?.currentHealthPoints).toBeLessThanOrEqual(initialMage?.currentHealthPoints!);
+        expect(updatedMage?.currentHealthPoints).toBeLessThanOrEqual(
+          initialMage?.currentHealthPoints!
+        );
         expect(updatedWarrior?.currentHealthPoints).toBe(0);
       }
 
@@ -250,9 +263,9 @@ describe('Battle System', () => {
       // Start battle
       const battleResponse = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: warrior.id, 
-          character2Id: thief.id 
+        .send({
+          character1Id: warrior.id,
+          character2Id: thief.id,
         })
         .expect(200);
 
@@ -260,31 +273,29 @@ describe('Battle System', () => {
       const winnerCurrentHP = battleResponse.body.winner.currentHealthPoints;
 
       // Get character details
-      const detailsResponse = await request(app)
-        .get(`/api/characters/${winnerId}`)
-        .expect(200);
+      const detailsResponse = await request(app).get(`/api/characters/${winnerId}`).expect(200);
 
       // Verify the details show updated health
       expect(detailsResponse.body.currentHealthPoints).toBe(winnerCurrentHP);
-      expect(detailsResponse.body.currentHealthPoints).toBeLessThanOrEqual(detailsResponse.body.maxHealthPoints);
+      expect(detailsResponse.body.currentHealthPoints).toBeLessThanOrEqual(
+        detailsResponse.body.maxHealthPoints
+      );
     });
 
     it('should show updated health and status in character list after battle', async () => {
       // Start battle
       const battleResponse = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: warrior.id, 
-          character2Id: thief.id 
+        .send({
+          character1Id: warrior.id,
+          character2Id: thief.id,
         })
         .expect(200);
 
       const loserId = battleResponse.body.loser.character.id;
 
       // Get character list
-      const listResponse = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const listResponse = await request(app).get('/api/characters').expect(200);
 
       // Find loser in the list
       const loserInList = listResponse.body.data.find((char: any) => char.id === loserId);
@@ -295,9 +306,9 @@ describe('Battle System', () => {
     it('should preserve battle statistics in response', async () => {
       const response = await request(app)
         .post('/api/battle')
-        .send({ 
-          character1Id: warrior.id, 
-          character2Id: thief.id 
+        .send({
+          character1Id: warrior.id,
+          character2Id: thief.id,
         })
         .expect(200);
 
@@ -305,7 +316,7 @@ describe('Battle System', () => {
       expect(response.body.winner.character).toHaveProperty('name');
       expect(response.body.winner.character).toHaveProperty('job');
       expect(response.body.winner.character).toHaveProperty('maxHealthPoints');
-      
+
       expect(response.body.loser.character).toHaveProperty('name');
       expect(response.body.loser.character).toHaveProperty('job');
       expect(response.body.loser.character).toHaveProperty('maxHealthPoints');
@@ -326,11 +337,11 @@ describe('Battle System', () => {
   describe('Battle Logic Edge Cases', () => {
     it('should handle warrior vs mage combat correctly', () => {
       const result = battleService.battle(warrior, mage);
-      
+
       // Warrior has higher HP (20 vs 12) and decent attack (9)
       // Mage has higher attack potential (12) but lower HP
       // Either could win depending on speed rolls and damage rolls
-      
+
       expect([warrior.id, mage.id]).toContain(result.winner.character.id);
       expect([warrior.id, mage.id]).toContain(result.loser.character.id);
       expect(result.winner.character.id).not.toBe(result.loser.character.id);
@@ -338,10 +349,10 @@ describe('Battle System', () => {
 
     it('should handle thief vs mage combat correctly', () => {
       const result = battleService.battle(thief, mage);
-      
+
       // Thief has moderate HP (15) and high speed/attack potential
       // Mage has lowest HP (12) but highest attack potential
-      
+
       expect([thief.id, mage.id]).toContain(result.winner.character.id);
       expect([thief.id, mage.id]).toContain(result.loser.character.id);
       expect(result.winner.character.id).not.toBe(result.loser.character.id);
@@ -352,7 +363,7 @@ describe('Battle System', () => {
       const start = Date.now();
       const result = battleService.battle(warrior, mage);
       const duration = Date.now() - start;
-      
+
       // Battle should complete within 1 second (very generous)
       expect(duration).toBeLessThan(1000);
       expect(result.totalRounds).toBeLessThan(100); // Reasonable upper limit

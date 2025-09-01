@@ -31,23 +31,23 @@ router.get('/', (req, res) => {
     const jobs = Object.keys(JOB_BASE_STATS).map(jobName => {
       const job = jobName as JobType;
       const stats = JOB_BASE_STATS[job];
-      
+
       // Define modifier formulas for display
       const modifierFormulas = {
         Warrior: {
-          attack: "80% of Strength + 20% of Dexterity",
-          speed: "60% of Dexterity + 20% of Intelligence"
+          attack: '80% of Strength + 20% of Dexterity',
+          speed: '60% of Dexterity + 20% of Intelligence',
         },
         Thief: {
-          attack: "25% of Strength + 100% of Dexterity + 25% of Intelligence",
-          speed: "80% of Dexterity"
+          attack: '25% of Strength + 100% of Dexterity + 25% of Intelligence',
+          speed: '80% of Dexterity',
         },
         Mage: {
-          attack: "20% of Strength + 20% of Dexterity + 120% of Intelligence", 
-          speed: "40% of Dexterity + 10% of Strength"
-        }
+          attack: '20% of Strength + 20% of Dexterity + 120% of Intelligence',
+          speed: '40% of Dexterity + 10% of Strength',
+        },
       };
-      
+
       return {
         name: job,
         maxHealthPoints: stats.healthPoints,
@@ -55,7 +55,7 @@ router.get('/', (req, res) => {
         dexterity: stats.dexterity,
         intelligence: stats.intelligence,
         attackFormula: modifierFormulas[job].attack,
-        speedFormula: modifierFormulas[job].speed
+        speedFormula: modifierFormulas[job].speed,
       };
     });
 

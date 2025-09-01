@@ -25,6 +25,6 @@ export function parsePaginationParams(query: any): PaginationQuery {
   return {
     page,
     limit,
-    offset
+    offset,
   };
 }

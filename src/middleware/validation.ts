@@ -4,9 +4,9 @@ import { ValidationError } from '../errors/CustomErrors';
 
 export function validateBody(schema: ObjectSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const { error, value } = schema.validate(req.body, { 
+    const { error, value } = schema.validate(req.body, {
       abortEarly: false, // Collect all errors
-      stripUnknown: true // Remove unknown fields
+      stripUnknown: true, // Remove unknown fields
     });
 
     if (error) {
@@ -25,7 +25,7 @@ export function validateQuery(schema: ObjectSchema) {
     const { error, value } = schema.validate(req.query, {
       abortEarly: false,
       stripUnknown: true,
-      convert: true // Convert string query params to appropriate types
+      convert: true, // Convert string query params to appropriate types
     });
 
     if (error) {
@@ -43,7 +43,7 @@ export function validateParams(schema: ObjectSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.params, {
       abortEarly: false,
-      stripUnknown: true
+      stripUnknown: true,
     });
 
     if (error) {

@@ -26,13 +26,10 @@ describe('Character Creation API', () => {
     it('should create a valid Warrior character', async () => {
       const characterData = {
         name: 'TestHero',
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(201);
+      const response = await request(app).post('/api/characters').send(characterData).expect(201);
 
       expect(response.body).toMatchObject({
         name: 'TestHero',
@@ -43,7 +40,7 @@ describe('Character Creation API', () => {
         dexterity: 5,
         intelligence: 5,
         attackModifier: 9, // 80% of 10 + 20% of 5 = 8 + 1 = 9
-        speedModifier: 4   // 60% of 5 + 20% of 5 = 3 + 1 = 4
+        speedModifier: 4, // 60% of 5 + 20% of 5 = 3 + 1 = 4
       });
       expect(response.body.id).toBeDefined();
     });
@@ -51,13 +48,10 @@ describe('Character Creation API', () => {
     it('should create a valid Thief character', async () => {
       const characterData = {
         name: 'SneakyRogue',
-        job: 'Thief'
+        job: 'Thief',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(201);
+      const response = await request(app).post('/api/characters').send(characterData).expect(201);
 
       expect(response.body).toMatchObject({
         name: 'SneakyRogue',
@@ -68,20 +62,17 @@ describe('Character Creation API', () => {
         dexterity: 10,
         intelligence: 4,
         attackModifier: 12, // 25% of 4 + 100% of 10 + 25% of 4 = 1 + 10 + 1 = 12
-        speedModifier: 8    // 80% of 10 = 8
+        speedModifier: 8, // 80% of 10 = 8
       });
     });
 
     it('should create a valid Mage character', async () => {
       const characterData = {
         name: 'WiseWizard',
-        job: 'Mage'
+        job: 'Mage',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(201);
+      const response = await request(app).post('/api/characters').send(characterData).expect(201);
 
       expect(response.body).toMatchObject({
         name: 'WiseWizard',
@@ -92,65 +83,59 @@ describe('Character Creation API', () => {
         dexterity: 6,
         intelligence: 10,
         attackModifier: 14, // 20% of 5 + 20% of 6 + 120% of 10 = 1 + 1.2 + 12 = 14.2 -> 14
-        speedModifier: 3    // 40% of 6 + 10% of 5 = 2.4 + 0.5 = 2.9 -> 3
+        speedModifier: 3, // 40% of 6 + 10% of 5 = 2.4 + 0.5 = 2.9 -> 3
       });
     });
 
     it('should reject character with name too short', async () => {
       const characterData = {
         name: 'Bob',
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
-      expect(response.body.error.details).toEqual(['Name must be between 4 and 15 characters inclusive']);
+      expect(response.body.error.details).toEqual([
+        'Name must be between 4 and 15 characters inclusive',
+      ]);
     });
 
     it('should reject character with name too long', async () => {
       const characterData = {
         name: 'ThisNameIsTooLongForACharacter',
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
-      expect(response.body.error.details).toEqual(['Name must be between 4 and 15 characters inclusive']);
+      expect(response.body.error.details).toEqual([
+        'Name must be between 4 and 15 characters inclusive',
+      ]);
     });
 
     it('should reject character with invalid name characters', async () => {
       const characterData = {
         name: 'Hero123',
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
-      expect(response.body.error.details).toEqual(['Name must contain only letters (a-z, A-Z) or underscore (_) characters']);
+      expect(response.body.error.details).toEqual([
+        'Name must contain only letters (a-z, A-Z) or underscore (_) characters',
+      ]);
     });
 
     it('should accept character name with underscores', async () => {
       const characterData = {
         name: 'Dark_Knight',
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(201);
+      const response = await request(app).post('/api/characters').send(characterData).expect(201);
 
       expect(response.body.name).toBe('Dark_Knight');
     });
@@ -158,13 +143,10 @@ describe('Character Creation API', () => {
     it('should reject character with invalid job', async () => {
       const characterData = {
         name: 'TestHero',
-        job: 'Paladin'
+        job: 'Paladin',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
       expect(response.body.error.details).toEqual(['Job must be one of: Warrior, Thief, Mage']);
@@ -172,13 +154,10 @@ describe('Character Creation API', () => {
 
     it('should reject character with missing name', async () => {
       const characterData = {
-        job: 'Warrior'
+        job: 'Warrior',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
       expect(response.body.error.details).toEqual(['Name is required']);
@@ -186,13 +165,10 @@ describe('Character Creation API', () => {
 
     it('should reject character with missing job', async () => {
       const characterData = {
-        name: 'TestHero'
+        name: 'TestHero',
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(characterData)
-        .expect(400);
+      const response = await request(app).post('/api/characters').send(characterData).expect(400);
 
       expect(response.body.error.message).toBe('Validation failed');
       expect(response.body.error.details).toEqual(['Job is required']);
@@ -201,9 +177,7 @@ describe('Character Creation API', () => {
 
   describe('GET /api/jobs', () => {
     it('should return all available jobs with their stats and modifier formulas', async () => {
-      const response = await request(app)
-        .get('/api/jobs')
-        .expect(200);
+      const response = await request(app).get('/api/jobs').expect(200);
 
       expect(response.body).toHaveLength(3);
       expect(response.body).toEqual(
@@ -214,8 +188,8 @@ describe('Character Creation API', () => {
             strength: 10,
             dexterity: 5,
             intelligence: 5,
-            attackFormula: "80% of Strength + 20% of Dexterity",
-            speedFormula: "60% of Dexterity + 20% of Intelligence"
+            attackFormula: '80% of Strength + 20% of Dexterity',
+            speedFormula: '60% of Dexterity + 20% of Intelligence',
           },
           {
             name: 'Thief',
@@ -223,8 +197,8 @@ describe('Character Creation API', () => {
             strength: 4,
             dexterity: 10,
             intelligence: 4,
-            attackFormula: "25% of Strength + 100% of Dexterity + 25% of Intelligence",
-            speedFormula: "80% of Dexterity"
+            attackFormula: '25% of Strength + 100% of Dexterity + 25% of Intelligence',
+            speedFormula: '80% of Dexterity',
           },
           {
             name: 'Mage',
@@ -232,9 +206,9 @@ describe('Character Creation API', () => {
             strength: 5,
             dexterity: 6,
             intelligence: 10,
-            attackFormula: "20% of Strength + 20% of Dexterity + 120% of Intelligence",
-            speedFormula: "40% of Dexterity + 10% of Strength"
-          }
+            attackFormula: '20% of Strength + 20% of Dexterity + 120% of Intelligence',
+            speedFormula: '40% of Dexterity + 10% of Strength',
+          },
         ])
       );
     });

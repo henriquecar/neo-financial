@@ -25,9 +25,7 @@ describe('Character Listing API', () => {
 
   describe('GET /api/characters', () => {
     it('should return empty array when no characters exist', async () => {
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('pagination');
@@ -41,25 +39,20 @@ describe('Character Listing API', () => {
         .post('/api/characters')
         .send({ name: 'Chamness', job: 'Warrior' })
         .expect(201);
-      
+
       await request(app)
         .post('/api/characters')
         .send({ name: 'Aetherius', job: 'Mage' })
         .expect(201);
-      
-      await request(app)
-        .post('/api/characters')
-        .send({ name: 'Mera', job: 'Thief' })
-        .expect(201);
 
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      await request(app).post('/api/characters').send({ name: 'Mera', job: 'Thief' }).expect(201);
+
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('pagination');
       expect(response.body.data).toHaveLength(3);
-      
+
       // Verify it contains only the essential fields for the list view
       response.body.data.forEach((character: TestCharacterListItem) => {
         expect(character).toHaveProperty('id');
@@ -67,7 +60,7 @@ describe('Character Listing API', () => {
         expect(character).toHaveProperty('job');
         expect(character).toHaveProperty('status');
         expect(character.status).toBe('Alive'); // All new characters should be alive
-        
+
         // Verify it does NOT contain detailed stats (those should only be in individual character endpoint)
         expect(character).not.toHaveProperty('maxHealthPoints');
         expect(character).not.toHaveProperty('strength');
@@ -94,7 +87,7 @@ describe('Character Listing API', () => {
         { name: 'Vyncent', job: 'Warrior' as const },
         { name: 'Eathed', job: 'Thief' as const },
         { name: 'Lilde', job: 'Mage' as const },
-        { name: 'Thatetch', job: 'Warrior' as const }
+        { name: 'Thatetch', job: 'Warrior' as const },
       ];
 
       // Create characters via API
@@ -105,9 +98,7 @@ describe('Character Listing API', () => {
           .expect(201);
       }
 
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body.data).toHaveLength(8);
 
@@ -117,9 +108,9 @@ describe('Character Listing API', () => {
           id: expect.any(String),
           name: expect.any(String),
           job: expect.stringMatching(/^(Warrior|Thief|Mage)$/),
-          status: 'Alive'
+          status: 'Alive',
         });
-        
+
         // Ensure no detailed stats are included in list view
         expect(Object.keys(character)).toEqual(['id', 'name', 'job', 'status']);
       });
@@ -133,12 +124,10 @@ describe('Character Listing API', () => {
         .post('/api/characters')
         .send({ name: 'TestHero', job: 'Warrior' })
         .expect(201);
-      
+
       const character = createResponse.body;
 
-      const response = await request(app)
-        .get(`/api/characters/${character.id}`)
-        .expect(200);
+      const response = await request(app).get(`/api/characters/${character.id}`).expect(200);
 
       expect(response.body).toMatchObject({
         id: character.id,
@@ -149,8 +138,8 @@ describe('Character Listing API', () => {
         currentHealthPoints: 20,
         battleModifiers: {
           attack: 9,
-          speed: 4
-        }
+          speed: 4,
+        },
       });
 
       // Verify base stats are not included
@@ -162,9 +151,7 @@ describe('Character Listing API', () => {
     });
 
     it('should return 404 for non-existent character', async () => {
-      const response = await request(app)
-        .get('/api/characters/non-existent-id')
-        .expect(404);
+      const response = await request(app).get('/api/characters/non-existent-id').expect(404);
 
       expect(response.body.error.message).toContain('Character with id non-existent-id not found');
     });
@@ -175,9 +162,7 @@ describe('Character Listing API', () => {
         throw new Error('Test error');
       });
 
-      const response = await request(app)
-        .get('/api/characters/test-id')
-        .expect(500);
+      const response = await request(app).get('/api/characters/test-id').expect(500);
 
       expect(response.body.error.message).toBe('Internal server error');
     });
@@ -190,20 +175,18 @@ describe('Character Listing API', () => {
         .post('/api/characters')
         .send({ name: 'WarriorTest', job: 'Warrior' })
         .expect(201);
-      
+
       await request(app)
         .post('/api/characters')
         .send({ name: 'ThiefTest', job: 'Thief' })
         .expect(201);
-      
+
       await request(app)
         .post('/api/characters')
         .send({ name: 'MageTest', job: 'Mage' })
         .expect(201);
 
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body.data).toHaveLength(3);
 
@@ -213,7 +196,7 @@ describe('Character Listing API', () => {
       response.body.data.forEach((character: TestCharacterListItem) => {
         // Check that it has exactly the expected fields
         expect(Object.keys(character).sort()).toEqual(expectedFields.sort());
-        
+
         expectedFields.forEach(field => {
           expect(character).toHaveProperty(field);
         });
@@ -226,22 +209,22 @@ describe('Character Listing API', () => {
         .post('/api/characters')
         .send({ name: 'Chamness', job: 'Warrior' })
         .expect(201);
-      
+
       const aetherius = await request(app)
         .post('/api/characters')
         .send({ name: 'Aetherius', job: 'Mage' })
         .expect(201);
-      
+
       const mera = await request(app)
         .post('/api/characters')
         .send({ name: 'Mera', job: 'Thief' })
         .expect(201);
-      
+
       const vyncent = await request(app)
         .post('/api/characters')
         .send({ name: 'Vyncent', job: 'Warrior' })
         .expect(201);
-      
+
       const thatetch = await request(app)
         .post('/api/characters')
         .send({ name: 'Thatetch', job: 'Warrior' })
@@ -254,9 +237,7 @@ describe('Character Listing API', () => {
       await testCharacterService.updateCharacterStatus(vyncent.body.id, 'Dead');
       await testCharacterService.updateCharacterStatus(thatetch.body.id, 'Dead');
 
-      const response = await request(app)
-        .get('/api/characters')
-        .expect(200);
+      const response = await request(app).get('/api/characters').expect(200);
 
       expect(response.body.data).toHaveLength(5);
 
@@ -265,7 +246,7 @@ describe('Character Listing API', () => {
       const deadCharacters = response.body.data.filter((char: any) => char.status === 'Dead');
 
       expect(aliveCharacters).toHaveLength(2); // Chamness, Mera
-      expect(deadCharacters).toHaveLength(3);  // Aetherius, Vyncent, Thatetch
+      expect(deadCharacters).toHaveLength(3); // Aetherius, Vyncent, Thatetch
 
       // Verify specific characters and their statuses match the screenshot pattern
       const champnessChar = response.body.data.find((char: any) => char.name === 'Chamness');

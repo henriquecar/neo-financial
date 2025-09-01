@@ -43,7 +43,12 @@ export const JOB_BASE_STATS: Record<JobType, JobStats> = {
   },
 };
 
-export function calculateAttackModifier(job: JobType, strength: number, dexterity: number, intelligence: number): number {
+export function calculateAttackModifier(
+  job: JobType,
+  strength: number,
+  dexterity: number,
+  intelligence: number
+): number {
   switch (job) {
     case 'Warrior':
       return Math.round(strength * 0.8 + dexterity * 0.2);
@@ -54,7 +59,12 @@ export function calculateAttackModifier(job: JobType, strength: number, dexterit
   }
 }
 
-export function calculateSpeedModifier(job: JobType, strength: number, dexterity: number, intelligence: number): number {
+export function calculateSpeedModifier(
+  job: JobType,
+  strength: number,
+  dexterity: number,
+  intelligence: number
+): number {
   switch (job) {
     case 'Warrior':
       return Math.round(dexterity * 0.6 + intelligence * 0.2);

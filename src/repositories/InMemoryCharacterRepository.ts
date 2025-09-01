@@ -24,22 +24,24 @@ export class InMemoryCharacterRepository implements ICharacterRepository {
     return characters;
   }
 
-  async findPaginated(paginationQuery: PaginationQuery): Promise<PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>>> {
+  async findPaginated(
+    paginationQuery: PaginationQuery
+  ): Promise<PaginationResult<Pick<Character, 'id' | 'name' | 'job' | 'status'>>> {
     const allCharacters = Array.from(this.characters.values());
     const totalItems = allCharacters.length;
     const totalPages = Math.ceil(totalItems / paginationQuery.limit);
-    
+
     // Extract the requested page of characters with only essential fields
     const startIndex = paginationQuery.offset;
     const endIndex = startIndex + paginationQuery.limit;
     const charactersSlice = allCharacters.slice(startIndex, endIndex);
-    
+
     // Map to lightweight character objects with only essential fields
     const data = charactersSlice.map(character => ({
       id: character.id,
       name: character.name,
       job: character.job,
-      status: character.status
+      status: character.status,
     }));
 
     return {
@@ -50,8 +52,8 @@ export class InMemoryCharacterRepository implements ICharacterRepository {
         totalItems,
         itemsPerPage: paginationQuery.limit,
         hasNextPage: paginationQuery.page < totalPages,
-        hasPreviousPage: paginationQuery.page > 1
-      }
+        hasPreviousPage: paginationQuery.page > 1,
+      },
     };
   }
 

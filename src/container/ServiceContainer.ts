@@ -14,7 +14,7 @@ export class ServiceContainer {
   private constructor() {
     // Initialize repositories
     this.characterRepository = new InMemoryCharacterRepository();
-    
+
     // Initialize services with their dependencies
     this.characterService = new CharacterService(this.characterRepository);
     this.battleService = new BattleService(this.characterService);

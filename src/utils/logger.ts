@@ -13,13 +13,13 @@ export const logger = winston.createLogger({
         timestamp,
         level,
         message,
-        ...meta
+        ...meta,
       });
     })
   ),
   defaultMeta: {
     service: 'neo-financial-api',
-    version: process.env.npm_package_version || '1.0.0'
+    version: process.env.npm_package_version || '1.0.0',
   },
   transports: [
     // Console transport for development
@@ -32,21 +32,21 @@ export const logger = winston.createLogger({
           const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
           return `${timestamp} ${level}: ${correlation}${message}${metaStr}`;
         })
-      )
+      ),
     }),
     // File transport for production
     new winston.transports.File({
       filename: 'logs/error.log',
       level: 'error',
       maxsize: 5242880, // 5MB
-      maxFiles: 5
+      maxFiles: 5,
     }),
     new winston.transports.File({
       filename: 'logs/combined.log',
       maxsize: 5242880, // 5MB
-      maxFiles: 5
-    })
-  ]
+      maxFiles: 5,
+    }),
+  ],
 });
 
 // Create logs directory if it doesn't exist

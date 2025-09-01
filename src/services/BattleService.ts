@@ -15,11 +15,14 @@ class BattleService implements IBattleService {
   private createBattleParticipant(character: Character): BattleParticipant {
     return {
       character,
-      currentHealthPoints: character.currentHealthPoints
+      currentHealthPoints: character.currentHealthPoints,
     };
   }
 
-  private determineRoundOrder(participant1: BattleParticipant, participant2: BattleParticipant): {
+  private determineRoundOrder(
+    participant1: BattleParticipant,
+    participant2: BattleParticipant
+  ): {
     first: BattleParticipant;
     second: BattleParticipant;
     firstSpeed: number;
@@ -27,7 +30,7 @@ class BattleService implements IBattleService {
   } {
     let firstSpeed: number;
     let secondSpeed: number;
-    
+
     // Keep rolling until there's no draw
     do {
       firstSpeed = this.rng.generateRandomInt(participant1.character.speedModifier);
@@ -37,40 +40,58 @@ class BattleService implements IBattleService {
     if (firstSpeed > secondSpeed) {
       return { first: participant1, second: participant2, firstSpeed, secondSpeed };
     } else {
-      return { first: participant2, second: participant1, firstSpeed: secondSpeed, secondSpeed: firstSpeed };
+      return {
+        first: participant2,
+        second: participant1,
+        firstSpeed: secondSpeed,
+        secondSpeed: firstSpeed,
+      };
     }
   }
 
   private executeAttack(attacker: BattleParticipant, defender: BattleParticipant): BattleTurn {
     const damage = this.rng.generateRandomInt(attacker.character.attackModifier);
     defender.currentHealthPoints = Math.max(0, defender.currentHealthPoints - damage);
-    
+
     return {
       attacker,
       defender,
       damage,
-      defenderRemainingHP: defender.currentHealthPoints
+      defenderRemainingHP: defender.currentHealthPoints,
     };
   }
 
-  private generateBattleLog(rounds: BattleRound[], winner: BattleParticipant, participant1: BattleParticipant, participant2: BattleParticipant): string[] {
+  private generateBattleLog(
+    rounds: BattleRound[],
+    winner: BattleParticipant,
+    participant1: BattleParticipant,
+    participant2: BattleParticipant
+  ): string[] {
     const log: string[] = [];
-    
+
     // Battle start
-    log.push(`Battle between ${participant1.character.name} (${participant1.character.job}) - ${participant1.character.currentHealthPoints} HP and ${participant2.character.name} (${participant2.character.job}) - ${participant2.character.currentHealthPoints} HP begins!`);
-    
+    log.push(
+      `Battle between ${participant1.character.name} (${participant1.character.job}) - ${participant1.character.currentHealthPoints} HP and ${participant2.character.name} (${participant2.character.job}) - ${participant2.character.currentHealthPoints} HP begins!`
+    );
+
     // Round by round log
     rounds.forEach(round => {
-      log.push(`${round.firstPlayer.character.name} ${round.firstPlayerSpeed} speed was faster than ${round.secondPlayer.character.name} ${round.secondPlayerSpeed} speed and will begin this round.`);
-      
+      log.push(
+        `${round.firstPlayer.character.name} ${round.firstPlayerSpeed} speed was faster than ${round.secondPlayer.character.name} ${round.secondPlayerSpeed} speed and will begin this round.`
+      );
+
       round.turns.forEach(turn => {
-        log.push(`${turn.attacker.character.name} attacks ${turn.defender.character.name} for ${turn.damage}, ${turn.defender.character.name} has ${turn.defenderRemainingHP} HP remaining.`);
+        log.push(
+          `${turn.attacker.character.name} attacks ${turn.defender.character.name} for ${turn.damage}, ${turn.defender.character.name} has ${turn.defenderRemainingHP} HP remaining.`
+        );
       });
     });
-    
+
     // Battle end
-    log.push(`${winner.character.name} wins the battle! ${winner.character.name} still has ${winner.currentHealthPoints} HP remaining!`);
-    
+    log.push(
+      `${winner.character.name} wins the battle! ${winner.character.name} still has ${winner.currentHealthPoints} HP remaining!`
+    );
+
     return log;
   }
 
@@ -81,11 +102,16 @@ class BattleService implements IBattleService {
     let roundNumber = 1;
     let maxRounds = ConfigService.MAX_BATTLE_ROUNDS;
 
-    while (participant1.currentHealthPoints > 0 && 
-           participant2.currentHealthPoints > 0 && 
-           maxRounds-- > 0) {
-      const { first, second, firstSpeed, secondSpeed } = this.determineRoundOrder(participant1, participant2);
-      
+    while (
+      participant1.currentHealthPoints > 0 &&
+      participant2.currentHealthPoints > 0 &&
+      maxRounds-- > 0
+    ) {
+      const { first, second, firstSpeed, secondSpeed } = this.determineRoundOrder(
+        participant1,
+        participant2
+      );
+
       const round: BattleRound = {
         roundNumber,
         firstPlayer: first,
@@ -93,7 +119,7 @@ class BattleService implements IBattleService {
         firstPlayerSpeed: firstSpeed,
         secondPlayerSpeed: secondSpeed,
         turns: [],
-        roundEnded: false
+        roundEnded: false,
       };
 
       // First player attacks
@@ -125,7 +151,9 @@ class BattleService implements IBattleService {
 
     // Check for battle timeout
     if (maxRounds <= 0) {
-      throw new BattleTimeoutError(`Battle exceeded maximum rounds (${ConfigService.MAX_BATTLE_ROUNDS})`);
+      throw new BattleTimeoutError(
+        `Battle exceeded maximum rounds (${ConfigService.MAX_BATTLE_ROUNDS})`
+      );
     }
 
     // Determine winner and loser
@@ -140,7 +168,7 @@ class BattleService implements IBattleService {
       loser,
       rounds,
       battleLog,
-      totalRounds: rounds.length
+      totalRounds: rounds.length,
     };
   }
 }

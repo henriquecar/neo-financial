@@ -1,10 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { ValidationError, NotFoundError, ConflictError, BattleError, ApiErrorResponse } from '../errors/CustomErrors';
+import {
+  ValidationError,
+  NotFoundError,
+  ConflictError,
+  BattleError,
+  ApiErrorResponse,
+} from '../errors/CustomErrors';
 
 export function errorHandler(error: Error, req: Request, res: Response, next: NextFunction): void {
   const timestamp = new Date().toISOString();
   const path = req.path;
-  
+
   let statusCode = 500;
   let code = 'INTERNAL_SERVER_ERROR';
   let message = 'Internal server error';
@@ -45,10 +51,9 @@ export function errorHandler(error: Error, req: Request, res: Response, next: Ne
       message,
       details,
       timestamp,
-      path
-    }
+      path,
+    },
   };
 
   res.status(statusCode).json(errorResponse);
 }
-

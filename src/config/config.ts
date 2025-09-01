@@ -13,7 +13,7 @@ interface EnvironmentConfig {
 function parseEnvironment(): EnvironmentConfig {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const validNodeEnvs = ['development', 'production', 'test'];
-  
+
   if (!validNodeEnvs.includes(nodeEnv)) {
     throw new Error(`Invalid NODE_ENV: ${nodeEnv}. Must be one of: ${validNodeEnvs.join(', ')}`);
   }
@@ -25,27 +25,41 @@ function parseEnvironment(): EnvironmentConfig {
 
   const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX || '100', 10);
   if (isNaN(rateLimitMax) || rateLimitMax <= 0) {
-    throw new Error(`Invalid RATE_LIMIT_MAX: ${process.env.RATE_LIMIT_MAX}. Must be a positive number`);
+    throw new Error(
+      `Invalid RATE_LIMIT_MAX: ${process.env.RATE_LIMIT_MAX}. Must be a positive number`
+    );
   }
 
   const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
   if (isNaN(rateLimitWindowMs) || rateLimitWindowMs <= 0) {
-    throw new Error(`Invalid RATE_LIMIT_WINDOW_MS: ${process.env.RATE_LIMIT_WINDOW_MS}. Must be a positive number`);
+    throw new Error(
+      `Invalid RATE_LIMIT_WINDOW_MS: ${process.env.RATE_LIMIT_WINDOW_MS}. Must be a positive number`
+    );
   }
 
   const maxBattleRounds = parseInt(process.env.MAX_BATTLE_ROUNDS || '1000', 10);
   if (isNaN(maxBattleRounds) || maxBattleRounds <= 0) {
-    throw new Error(`Invalid MAX_BATTLE_ROUNDS: ${process.env.MAX_BATTLE_ROUNDS}. Must be a positive number`);
+    throw new Error(
+      `Invalid MAX_BATTLE_ROUNDS: ${process.env.MAX_BATTLE_ROUNDS}. Must be a positive number`
+    );
   }
 
   const maxPaginationLimit = parseInt(process.env.MAX_PAGINATION_LIMIT || '100', 10);
   if (isNaN(maxPaginationLimit) || maxPaginationLimit <= 0) {
-    throw new Error(`Invalid MAX_PAGINATION_LIMIT: ${process.env.MAX_PAGINATION_LIMIT}. Must be a positive number`);
+    throw new Error(
+      `Invalid MAX_PAGINATION_LIMIT: ${process.env.MAX_PAGINATION_LIMIT}. Must be a positive number`
+    );
   }
 
   const defaultPaginationLimit = parseInt(process.env.DEFAULT_PAGINATION_LIMIT || '10', 10);
-  if (isNaN(defaultPaginationLimit) || defaultPaginationLimit <= 0 || defaultPaginationLimit > maxPaginationLimit) {
-    throw new Error(`Invalid DEFAULT_PAGINATION_LIMIT: ${process.env.DEFAULT_PAGINATION_LIMIT}. Must be a positive number not exceeding MAX_PAGINATION_LIMIT`);
+  if (
+    isNaN(defaultPaginationLimit) ||
+    defaultPaginationLimit <= 0 ||
+    defaultPaginationLimit > maxPaginationLimit
+  ) {
+    throw new Error(
+      `Invalid DEFAULT_PAGINATION_LIMIT: ${process.env.DEFAULT_PAGINATION_LIMIT}. Must be a positive number not exceeding MAX_PAGINATION_LIMIT`
+    );
   }
 
   return {
